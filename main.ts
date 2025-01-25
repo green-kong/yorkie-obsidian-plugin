@@ -6,7 +6,7 @@ import EnterDocumentKeyCommand from "./commands/enterDocumentKeyCommand";
 import { EventEmitter } from 'events';
 import YorkieConnector from "./connectors/yorkieConnector";
 import * as dotenv from 'dotenv'
-
+import { EditorView } from "@codemirror/view";
 
 
 export default class YorkiePlugin extends Plugin {
@@ -19,6 +19,12 @@ export default class YorkiePlugin extends Plugin {
 	enterDocumentKeyModal = new EnterDocumentKeyModal(this.app, this.events);
 
 	async onload() {
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (view) {
+			// @ts-expect-error, Obsidian API에서 타입이 지정되지 않음
+			const editorView = view.editor.cm as EditorView;
+		}
+
 		this.setEnvironmentVariable();
 		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository));
 		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.events))
@@ -35,15 +41,15 @@ export default class YorkiePlugin extends Plugin {
 				this.leafChangeFlag = true;
 				if (leaf && leaf.view instanceof MarkdownView) {
 					const docKey = await this.frontmatterRepository.getDocumentKey();
+					const view = (leaf.view.editor as any).cm as EditorView;
 					if (docKey) {
-						await this.yorkieConnector.connect(docKey);
+						await this.yorkieConnector.connect(docKey, view);
 					} else {
 						await this.yorkieConnector.disconnect();
 					}
 				}
 			})
 		);
-
 	}
 
 	private setEnvironmentVariable() {
