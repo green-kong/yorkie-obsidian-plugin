@@ -3,38 +3,42 @@ import FrontmatterRepository from "./repository/frontmatterRepository";
 import CreateDocumentKeyCommand from "./commands/createDocumentKeyCommand";
 import EnterDocumentKeyModal from "./modals/enterDocumentKeyModal";
 import EnterDocumentKeyCommand from "./commands/enterDocumentKeyCommand";
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'events';
+import YorkieConnector from "./connectors/yorkieConnector";
+import * as dotenv from 'dotenv'
 
-// UwAhCMuzSqgTNUfSBHVQhd
-// 374UrEEDWqL3Y3ViWJc2U7
 
-// Remember to rename these classes and interfaces!
 
 export default class YorkiePlugin extends Plugin {
+	basePath = (this.app.vault.adapter as any).basePath
+
+	leafChangeFlag = false;
+	events = new EventEmitter();
+	yorkieConnector: YorkieConnector = new YorkieConnector(this.events);
+	frontmatterRepository = new FrontmatterRepository(this.app)
+	enterDocumentKeyModal = new EnterDocumentKeyModal(this.app, this.events);
 
 	async onload() {
-
-		const events = new EventEmitter();
-
-		const frontmatterRepository = new FrontmatterRepository(this.app)
-
-		const enterDocumentKeyModal = new EnterDocumentKeyModal(this.app, events);
-
-		this.addCommand(new CreateDocumentKeyCommand(frontmatterRepository));
-		this.addCommand(new EnterDocumentKeyCommand(frontmatterRepository, enterDocumentKeyModal, events))
+		this.setEnvironmentVariable();
+		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository));
+		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.events))
 
 		/**
 		 * when opened tab is changed, judge this file is yorkie document or not
 		 */
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', async (leaf) => {
+				if (this.leafChangeFlag) {
+					this.leafChangeFlag = false;
+					return;
+				}
+				this.leafChangeFlag = true;
 				if (leaf && leaf.view instanceof MarkdownView) {
-					const docKey = await frontmatterRepository.getDocumentKey();
+					const docKey = await this.frontmatterRepository.getDocumentKey();
 					if (docKey) {
-						// 동시편집 활성화
-						new Notice(docKey);
+						await this.yorkieConnector.connect(docKey);
 					} else {
-						// 동시편집 비활성화 모드
+						await this.yorkieConnector.disconnect();
 					}
 				}
 			})
@@ -42,7 +46,14 @@ export default class YorkiePlugin extends Plugin {
 
 	}
 
-	onunload() {
+	private setEnvironmentVariable() {
+		dotenv.config({
+			path: `${this.basePath}/.obsidian/plugins/obsidian-yorkie-plugin/.env`,
+			debug: false
+		})
+	}
 
+	onunload() {
+		this.yorkieConnector.disconnect();
 	}
 }
