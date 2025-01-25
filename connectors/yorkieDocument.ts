@@ -35,6 +35,16 @@ export default class YorkieDocument {
 		});
 	}
 
+	setupInitialData() {
+		this.document.update((root) => {
+			console.log(this.view.state.doc.toString());
+			if (!root.content) {
+				root.content = new yorkie.Text();
+				root.content.edit(0, 0, this.view.state.doc.toString());
+			}
+		}, 'create content if not exists');
+	}
+
 	private syncText() {
 		const text = this.document.getRoot().content;
 		const transactionSpec: TransactionSpec = {
@@ -67,5 +77,17 @@ export default class YorkieDocument {
 			annotations: [Transaction.remote.of(true)],
 		});
 		this.syncText();
+	}
+
+	update(transaction: Transaction) {
+		let adj = 0;
+		transaction.changes.iterChanges((fromA, toA, _, __, inserted) => {
+			const insertText = inserted.toJSON().join('\n');
+			this.document.update((root) => {
+				root.content.edit(fromA + adj, toA + adj, insertText);
+				console.log("yorkie update", insertText)
+			});
+			adj += insertText.length - (toA - fromA);
+		});
 	}
 }

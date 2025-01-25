@@ -3,6 +3,7 @@ import yorkie, { Client, Document } from 'yorkie-js-sdk'
 import { Notice } from "obsidian";
 import { EditorView } from "@codemirror/view";
 import YorkieDocument from "./yorkieDocument";
+import { Transaction } from "@codemirror/state";
 
 export default class YorkieConnector {
 	private client: Client | null;
@@ -48,6 +49,8 @@ export default class YorkieConnector {
 		// }
 		const document = new YorkieDocument(documentKey, view);
 		await this.client?.attach(document.document);
+		document.setupInitialData();
+		this.document = document;
 	}
 
 	async detach() {
@@ -61,5 +64,11 @@ export default class YorkieConnector {
 		await this.client?.deactivate()
 		this.client = null;
 		this.document = null;
+	}
+
+	updateDocument(tx: Transaction) {
+		if (this.document) {
+			this.document.update(tx);
+		}
 	}
 }
