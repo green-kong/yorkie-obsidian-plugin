@@ -1,5 +1,6 @@
 import { App, Notice, TFile } from "obsidian";
 import matter from "gray-matter";
+import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
 
 const DOCUMENT_KEY = 'document_key'
 
@@ -15,7 +16,7 @@ export default class FrontmatterRepository {
 		if (file.activatedFile === null) {
 			new Notice("There is not a file to enter document key.\n" +
 				"Open a file first.")
-			return;
+			throw new ActivatedFileIsNotExistedError();
 		}
 		const activatedFile = file.activatedFile;
 		const {data, markdownContent} = file.content

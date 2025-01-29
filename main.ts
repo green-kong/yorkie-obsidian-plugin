@@ -8,6 +8,11 @@ import YorkieConnector from "./connectors/yorkieConnector";
 import * as dotenv from 'dotenv'
 import { EditorView } from "@codemirror/view";
 import { Transaction } from "@codemirror/state";
+import {
+	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
+	CreateOrEnterDocumentKeyEventDto
+} from "./events/createOrEnterDocumentKeyEvent";
+import CodeMirror from "codemirror";
 
 
 export default class YorkiePlugin extends Plugin {
@@ -23,6 +28,15 @@ export default class YorkiePlugin extends Plugin {
 		this.setEnvironmentVariable();
 		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events));
 		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.events))
+
+		this.events.on(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, async (dto: CreateOrEnterDocumentKeyEventDto) => {
+			const {documentKey} = dto;
+			const editor = this.app.workspace.activeEditor?.editor;
+			if (editor) {
+				const view = (editor as any).cm as EditorView;
+				await this.yorkieConnector.connect(documentKey, view);
+			}
+		})
 
 		/**
 		 * when opened tab is changed, judge this file is yorkie document or not

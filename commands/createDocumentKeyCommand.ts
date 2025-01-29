@@ -3,6 +3,7 @@ import FrontmatterRepository from "../repository/frontmatterRepository";
 import { generateDocumentKey } from "./documentKeyGenerator";
 import { EventEmitter } from "events";
 import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
+import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
 
 export default class CreateDocumentKeyCommand implements Command {
 	id = "create document key";
@@ -19,13 +20,20 @@ export default class CreateDocumentKeyCommand implements Command {
 	}
 
 	async callback(): Promise<void> {
-		const documentKey = generateDocumentKey();
-		const found = await this.frontmatterRepository.getDocumentKey();
-		if (!found) {
-			await this.frontmatterRepository.saveDocumentKey(documentKey);
-			this.events.emit(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, {documentKey});
-			return;
+		try {
+			const documentKey = generateDocumentKey();
+			const found = await this.frontmatterRepository.getDocumentKey();
+			if (!found) {
+				await this.frontmatterRepository.saveDocumentKey(documentKey);
+				this.events.emit(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, {documentKey});
+				return;
+			}
+			new Notice("document key is already existed");
+		} catch (error) {
+			if (error instanceof ActivatedFileIsNotExistedError) {
+				return;
+			}
+			throw error;
 		}
-		new Notice("document key is already existed")
 	}
 }
