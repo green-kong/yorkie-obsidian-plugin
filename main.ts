@@ -63,7 +63,7 @@ export default class YorkiePlugin extends Plugin {
 		this.registerEditorExtension(EditorView.updateListener.of((viewUpdate) => {
 			if (viewUpdate.docChanged) {
 				for (const tx of viewUpdate.transactions) {
-					const events = ['input', 'delete', 'move', 'undo', 'redo'];
+					const events = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
 					if (!events.map((event) => tx.isUserEvent(event)).some(Boolean)) {
 						continue;
 					}
