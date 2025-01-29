@@ -37,7 +37,6 @@ export default class YorkieDocument {
 
 	setupInitialData() {
 		this.document.update((root) => {
-			console.log(this.view.state.doc.toString());
 			if (!root.content) {
 				root.content = new yorkie.Text();
 				root.content.edit(0, 0, this.view.state.doc.toString());
@@ -85,7 +84,6 @@ export default class YorkieDocument {
 			const insertText = inserted.toJSON().join('\n');
 			this.document.update((root) => {
 				root.content.edit(fromA + adj, toA + adj, insertText);
-				console.log("yorkie update", insertText)
 			});
 			adj += insertText.length - (toA - fromA);
 		});

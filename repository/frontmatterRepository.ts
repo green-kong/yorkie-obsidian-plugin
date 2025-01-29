@@ -61,14 +61,3 @@ interface readFileResult {
 		markdownContent: string
 	}
 }
-
-// if (file) {
-// 	const content = await this.app.vault.read(file);
-
-//
-// 	console.log(data.document_key);
-//
-// 	data.test = "adsf"
-// 	const updatedContent = matter.stringify(markdownContent, data);
-// 	await this.app.vault.modify(file, updatedContent);
-// }

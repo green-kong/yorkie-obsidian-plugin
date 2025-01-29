@@ -1,4 +1,4 @@
-import { MarkdownView, Notice, Plugin } from 'obsidian';
+import { MarkdownView, Plugin } from 'obsidian';
 import FrontmatterRepository from "./repository/frontmatterRepository";
 import CreateDocumentKeyCommand from "./commands/createDocumentKeyCommand";
 import EnterDocumentKeyModal from "./modals/enterDocumentKeyModal";
@@ -57,7 +57,6 @@ export default class YorkiePlugin extends Plugin {
 						continue;
 					}
 					this.yorkieConnector.updateDocument(tx);
-					console.log("changed!", tx);
 				}
 			}
 		}));
