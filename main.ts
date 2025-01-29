@@ -21,7 +21,7 @@ export default class YorkiePlugin extends Plugin {
 
 	async onload() {
 		this.setEnvironmentVariable();
-		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository));
+		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events));
 		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.events))
 
 		/**
