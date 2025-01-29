@@ -1,4 +1,4 @@
-import { App, TFile } from "obsidian";
+import { App, Notice, TFile } from "obsidian";
 import matter from "gray-matter";
 
 const DOCUMENT_KEY = 'document_key'
@@ -13,6 +13,8 @@ export default class FrontmatterRepository {
 	async saveDocumentKey(documentKey: string): Promise<void> {
 		const file = await this.readFile()
 		if (file.activatedFile === null) {
+			new Notice("There is not a file to enter document key.\n" +
+				"Open a file first.")
 			return;
 		}
 		const activatedFile = file.activatedFile;
@@ -48,7 +50,7 @@ export default class FrontmatterRepository {
 			activatedFile: null
 		};
 	}
-};
+}
 
 interface readFileNullResult {
 	activatedFile: null;
