@@ -1,5 +1,6 @@
-import { App, TFile } from "obsidian";
+import { App, Notice, TFile } from "obsidian";
 import matter from "gray-matter";
+import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
 
 const DOCUMENT_KEY = 'document_key'
 
@@ -13,7 +14,9 @@ export default class FrontmatterRepository {
 	async saveDocumentKey(documentKey: string): Promise<void> {
 		const file = await this.readFile()
 		if (file.activatedFile === null) {
-			return;
+			new Notice("There is not a file to enter document key.\n" +
+				"Open a file first.")
+			throw new ActivatedFileIsNotExistedError();
 		}
 		const activatedFile = file.activatedFile;
 		const {data, markdownContent} = file.content
@@ -48,7 +51,7 @@ export default class FrontmatterRepository {
 			activatedFile: null
 		};
 	}
-};
+}
 
 interface readFileNullResult {
 	activatedFile: null;
