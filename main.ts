@@ -14,6 +14,8 @@ import {
 } from "./events/createOrEnterDocumentKeyEvent";
 
 
+const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
+
 export default class YorkiePlugin extends Plugin {
 	basePath = (this.app.vault.adapter as any).basePath
 
@@ -62,8 +64,7 @@ export default class YorkiePlugin extends Plugin {
 		this.registerEditorExtension(EditorView.updateListener.of((viewUpdate) => {
 			if (viewUpdate.docChanged) {
 				for (const tx of viewUpdate.transactions) {
-					const events = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
-					if (!events.map((event) => tx.isUserEvent(event)).some(Boolean)) {
+					if (!USER_EVENTS_LIST.map((event) => tx.isUserEvent(event)).some(Boolean)) {
 						continue;
 					}
 					if (tx.annotation(Transaction.remote)) {
