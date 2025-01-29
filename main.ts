@@ -12,7 +12,6 @@ import {
 	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
 	CreateOrEnterDocumentKeyEventDto
 } from "./events/createOrEnterDocumentKeyEvent";
-import CodeMirror from "codemirror";
 
 
 export default class YorkiePlugin extends Plugin {
