@@ -79,7 +79,7 @@ export default class YorkiePlugin extends Plugin {
 
 	private setEnvironmentVariable() {
 		dotenv.config({
-			path: `${this.basePath}/.obsidian/plugins/obsidian-yorkie-plugin/.env`,
+			path: `${this.basePath}/.obsidian/plugins/yorkie-obsidian-plugin/.env`,
 			debug: false
 		})
 	}
