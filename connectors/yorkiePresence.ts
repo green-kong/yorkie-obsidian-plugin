@@ -1,6 +1,11 @@
 import { Settings } from "../settings/settings";
 
-export default class YorkiePresence {
+export type TYorkiePresence = {
+	userName: string;
+	color: string;
+}
+
+export default class YorkiePresence implements TYorkiePresence {
 	userName: string;
 	color: string;
 

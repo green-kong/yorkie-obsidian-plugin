@@ -1,20 +1,37 @@
-import yorkie, { Document, EditOpInfo, OperationInfo } from 'yorkie-js-sdk'
+import yorkie, { ActorID, DocEventType, Document, EditOpInfo, Indexable, OperationInfo, Text } from 'yorkie-js-sdk'
 import { Transaction, TransactionSpec } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
+import { TYorkiePresence } from "./yorkiePresence";
+
+type TYorkieDocument = {
+	content: Text
+}
 
 export default class YorkieDocument {
-	document: Document<any>;
+	document: Document<TYorkieDocument, TYorkiePresence>;
 	view: EditorView;
 
-	constructor(documentKey: string, view: EditorView) {
-		this.document = new yorkie.Document(documentKey);
+	constructor(documentKey: string, view: EditorView, clientId: string | undefined) {
+		this.document = new yorkie.Document<TYorkieDocument, TYorkiePresence>(documentKey);
 		this.view = view;
-		this.init();
+		this.init(clientId);
 	}
 
-	private init() {
+	private init(clientId: string | undefined) {
 		this.subscribeSnapshot();
 		this.subscribeRemoteChange();
+		this.subscribePeerListChange(clientId);
+	}
+
+	private subscribePeerListChange(clientId: string | undefined) {
+		this.document.subscribe('presence', (event) => {
+			this.displayPeerList(this.document.getPresences(), clientId);
+		});
+	}
+
+	private displayPeerList(peers: Array<{ clientID: ActorID; presence: TYorkiePresence }>, id: string | undefined) {
+		//TODO : keep write
+		console.log(peers.map((peer) => peer.presence.userName))
 	}
 
 	private subscribeSnapshot() {

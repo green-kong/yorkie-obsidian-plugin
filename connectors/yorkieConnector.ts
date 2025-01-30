@@ -48,7 +48,11 @@ export default class YorkieConnector {
 		// if (this.document) {
 		// 	await this.detach();
 		// }
-		const document = new YorkieDocument(documentKey, view);
+		if (!this.client) {
+			return;
+		}
+		const clientId = this.client.getID();
+		const document = new YorkieDocument(documentKey, view, clientId);
 		await this.client?.attach(document.document, {
 			initialPresence: {...presence}
 		});
