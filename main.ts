@@ -15,6 +15,7 @@ import {
 import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
 import YorkiePresence from "./connectors/yorkiePresence";
+import PeersModal from "./modals/peersModal";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -29,6 +30,13 @@ export default class YorkiePlugin extends Plugin {
 	settings: Settings;
 
 	async onload() {
+		const pm = new PeersModal(this.app);
+		const peerListStatus = this.addStatusBarItem();
+		peerListStatus.setText('participants: 4');
+		peerListStatus.onClickEvent(()=>{
+			pm.open();
+		})
+
 		await this.setUpSettings();
 		this.setEnvironmentVariable();
 		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events));
