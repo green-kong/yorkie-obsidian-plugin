@@ -7,6 +7,7 @@ export default class SettingTab extends PluginSettingTab {
 	private readonly plugin: YorkiePlugin;
 	private readonly events: EventEmitter;
 	private usernameComponent: TextComponent;
+	private colorTextComponent: TextComponent;
 	private isValid = true;
 	username: string;
 	color: string;
@@ -19,6 +20,10 @@ export default class SettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
+		this.username = this.plugin.settings.userName;
+		this.color = this.plugin.settings.color;
+		this.isValid = true;
+
 		const {containerEl} = this;
 		containerEl.empty();
 		new Setting(containerEl)
@@ -34,20 +39,18 @@ export default class SettingTab extends PluginSettingTab {
 			});
 
 
-		let textComponent: TextComponent;
 		new Setting(containerEl)
 			.setName("User color")
 			.setDesc('This is the color displayed to other users participating in collaborative editing.')
 			.addText(text => {
-				textComponent = text
+				this.colorTextComponent = text
 					.setValue(this.plugin.settings.color)
 					.setDisabled(true);
-				return textComponent;
 			})
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.color)
 				.onChange(async (value) => {
-					textComponent.setValue(value);
+					this.colorTextComponent.setValue(value);
 					this.color = value;
 				}));
 	}
