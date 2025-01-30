@@ -8,7 +8,6 @@ import YorkiePresence from "./yorkiePresence";
 
 export default class YorkieConnector {
 	private client: Client | null;
-	// TODO: which type should I use?
 	private document: YorkieDocument | null;
 	private readonly events: EventEmitter;
 
