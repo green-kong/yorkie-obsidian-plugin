@@ -70,6 +70,7 @@ export default class YorkiePlugin extends Plugin {
 				};
 				this.yorkieConnector.updatePresence(presence)
 				this.settings = presence;
+				await this.saveSettings();
 			}
 		});
 
