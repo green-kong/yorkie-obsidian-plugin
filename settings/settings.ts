@@ -1,4 +1,5 @@
 import { generateRandomUserName } from "./generateRandomUserName";
+import { generateRandomColor } from "./generateRandomColor";
 
 export interface Settings {
 	userName: string;
@@ -7,5 +8,5 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
 	userName: generateRandomUserName(),
-	color: "#23e235"
+	color: generateRandomColor()
 }
