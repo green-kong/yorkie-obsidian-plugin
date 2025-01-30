@@ -1,13 +1,13 @@
 import { EventEmitter } from "events";
-import yorkie, { Client, Document } from 'yorkie-js-sdk'
+import yorkie, { Client } from 'yorkie-js-sdk'
 import { Notice } from "obsidian";
 import { EditorView } from "@codemirror/view";
 import YorkieDocument from "./yorkieDocument";
 import { Transaction } from "@codemirror/state";
+import YorkiePresence, { TYorkiePresence } from "./yorkiePresence";
 
 export default class YorkieConnector {
 	private client: Client | null;
-	// TODO: which type should I use?
 	private document: YorkieDocument | null;
 	private readonly events: EventEmitter;
 
@@ -20,14 +20,17 @@ export default class YorkieConnector {
 	 * Goal : maintain client / document detach & attach
 	 * Problem : By yorkie js sdk Issue, documentWatch is pending
 	 */
-	async connect(documentKey: string, view: EditorView) {
+	async connect(documentKey: string, view: EditorView, presence: YorkiePresence) {
 		try {
 			// if (!this.client) {
 			// 	await this.connectClient();
 			// }
 			// TODO: After YORKIE ISSUE change to maintain client
+			if(this.client){
+				await this.disconnect();
+			}
 			await this.connectClient();
-			await this.attachDocument(documentKey, view);
+			await this.attachDocument(documentKey, view, presence);
 			new Notice("Connection is SUCCESS!🔗");
 		} catch (error) {
 			console.error(error);
@@ -43,12 +46,18 @@ export default class YorkieConnector {
 		await this.client.activate();
 	}
 
-	async attachDocument(documentKey: string, view: EditorView) {
+	async attachDocument(documentKey: string, view: EditorView, presence: YorkiePresence) {
 		// if (this.document) {
 		// 	await this.detach();
 		// }
-		const document = new YorkieDocument(documentKey, view);
-		await this.client?.attach(document.document);
+		if (!this.client) {
+			return;
+		}
+		const clientId = this.client.getID();
+		const document = new YorkieDocument(documentKey, view, clientId, this.events);
+		await this.client?.attach(document.document, {
+			initialPresence: {...presence}
+		});
 		document.setupInitialData();
 		this.document = document;
 	}
@@ -69,6 +78,12 @@ export default class YorkieConnector {
 	updateDocument(tx: Transaction) {
 		if (this.document) {
 			this.document.update(tx);
+		}
+	}
+
+	updatePresence(presence: TYorkiePresence) {
+		if (this.document) {
+			this.document.updatePresence(presence);
 		}
 	}
 }

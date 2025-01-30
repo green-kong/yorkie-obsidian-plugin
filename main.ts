@@ -14,6 +14,10 @@ import {
 } from "./events/createOrEnterDocumentKeyEvent";
 import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
+import YorkiePresence from "./connectors/yorkiePresence";
+import PeersModal from "./modals/peersModal";
+import { CHANGE_PRESENCE_EVENT, ChangePresenceEventDto } from "./events/changePresenceEvent";
+import { CHANGE_SETTING_EVENT, ChangeSettingEventDto } from "./events/changeSettingEvent";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -28,6 +32,12 @@ export default class YorkiePlugin extends Plugin {
 	settings: Settings;
 
 	async onload() {
+		const pm = new PeersModal(this.app);
+		const peerListStatus = this.addStatusBarItem();
+		peerListStatus.onClickEvent(() => {
+			pm.open();
+		})
+
 		await this.setUpSettings();
 		this.setEnvironmentVariable();
 		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events));
@@ -38,9 +48,31 @@ export default class YorkiePlugin extends Plugin {
 			const editor = this.app.workspace.activeEditor?.editor;
 			if (editor) {
 				const view = (editor as any).cm as EditorView;
-				await this.yorkieConnector.connect(documentKey, view);
+				const yorkiePresence = YorkiePresence.from(this.settings);
+				await this.yorkieConnector.connect(documentKey, view, yorkiePresence);
 			}
 		})
+
+		this.events.on(CHANGE_PRESENCE_EVENT, async (dto: ChangePresenceEventDto) => {
+			if (dto.others && dto.me) {
+				peerListStatus.setText(`participants: ${dto.others.length + 1}`);
+				pm.setPresence(dto.me, dto.others);
+			}
+		});
+
+		this.events.on(CHANGE_SETTING_EVENT, async (dto: ChangeSettingEventDto) => {
+			const {username: newUserName, color: newColor} = dto;
+			const {userName: currentUserName, color: currentColor} = this.settings;
+			if (currentUserName !== newUserName || currentColor !== newColor) {
+				const presence = {
+					userName: newUserName,
+					color: newColor,
+				};
+				this.yorkieConnector.updatePresence(presence)
+				this.settings = presence;
+				await this.saveSettings();
+			}
+		});
 
 		/**
 		 * when opened tab is changed, judge this file is yorkie document or not
@@ -56,7 +88,8 @@ export default class YorkiePlugin extends Plugin {
 					const docKey = await this.frontmatterRepository.getDocumentKey();
 					const view = (leaf.view.editor as any).cm as EditorView;
 					if (docKey) {
-						await this.yorkieConnector.connect(docKey, view);
+						const yorkiePresence = YorkiePresence.from(this.settings);
+						await this.yorkieConnector.connect(docKey, view, yorkiePresence);
 					} else {
 						await this.yorkieConnector.disconnect();
 					}
