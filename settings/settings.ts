@@ -7,7 +7,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
 	userName: generateRandomUserName(),
-	color: "#000"
+	color: "#23e235"
 }
 
 

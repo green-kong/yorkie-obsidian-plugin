@@ -16,6 +16,7 @@ import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
 import YorkiePresence from "./connectors/yorkiePresence";
 import PeersModal from "./modals/peersModal";
+import { CHANGE_PRESENCE_EVENT, ChangePresenceEventDto } from "./events/changePresenceEvent";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -32,8 +33,7 @@ export default class YorkiePlugin extends Plugin {
 	async onload() {
 		const pm = new PeersModal(this.app);
 		const peerListStatus = this.addStatusBarItem();
-		peerListStatus.setText('participants: 4');
-		peerListStatus.onClickEvent(()=>{
+		peerListStatus.onClickEvent(() => {
 			pm.open();
 		})
 
@@ -51,6 +51,13 @@ export default class YorkiePlugin extends Plugin {
 				await this.yorkieConnector.connect(documentKey, view, yorkiePresence);
 			}
 		})
+
+		this.events.on(CHANGE_PRESENCE_EVENT, async (dto: ChangePresenceEventDto) => {
+			if (dto.others && dto.me) {
+				peerListStatus.setText(`participants: ${dto.others.length + 1}`);
+				pm.setPresence(dto.me, dto.others);
+			}
+		});
 
 		/**
 		 * when opened tab is changed, judge this file is yorkie document or not

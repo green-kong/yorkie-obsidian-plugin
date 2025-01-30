@@ -1,7 +1,9 @@
-import yorkie, { ActorID, DocEventType, Document, EditOpInfo, Indexable, OperationInfo, Text } from 'yorkie-js-sdk'
+import yorkie, { ActorID, Document, EditOpInfo, OperationInfo, Text } from 'yorkie-js-sdk'
 import { Transaction, TransactionSpec } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { TYorkiePresence } from "./yorkiePresence";
+import { EventEmitter } from "events";
+import { CHANGE_PRESENCE_EVENT } from "../events/changePresenceEvent";
 
 type TYorkieDocument = {
 	content: Text
@@ -10,10 +12,12 @@ type TYorkieDocument = {
 export default class YorkieDocument {
 	document: Document<TYorkieDocument, TYorkiePresence>;
 	view: EditorView;
+	events: EventEmitter;
 
-	constructor(documentKey: string, view: EditorView, clientId: string | undefined) {
+	constructor(documentKey: string, view: EditorView, clientId: string | undefined, events: EventEmitter) {
 		this.document = new yorkie.Document<TYorkieDocument, TYorkiePresence>(documentKey);
 		this.view = view;
+		this.events = events;
 		this.init(clientId);
 	}
 
@@ -30,8 +34,12 @@ export default class YorkieDocument {
 	}
 
 	private displayPeerList(peers: Array<{ clientID: ActorID; presence: TYorkiePresence }>, id: string | undefined) {
-		//TODO : keep write
-		console.log(peers.map((peer) => peer.presence.userName))
+		const me = peers.find((peer) => peer.clientID === id)?.presence;
+		if (!me) {
+			return;
+		}
+		const others = peers.filter((peer) => peer.clientID !== id);
+		this.events.emit(CHANGE_PRESENCE_EVENT, {me, others})
 	}
 
 	private subscribeSnapshot() {
