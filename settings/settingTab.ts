@@ -1,12 +1,21 @@
-import { App, PluginSettingTab, Setting, TextComponent } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting, TextComponent } from "obsidian";
 import YorkiePlugin from "../main";
+import { EventEmitter } from "events";
+import { CHANGE_SETTING_EVENT } from "../events/changeSettingEvent";
 
 export default class SettingTab extends PluginSettingTab {
 	private readonly plugin: YorkiePlugin;
+	private readonly events: EventEmitter;
+	private usernameComponent: TextComponent;
+	private isValid = true;
+	username: string;
+	color: string;
+
 
 	constructor(app: App, plugin: YorkiePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+		this.events = plugin.events;
 	}
 
 	display(): void {
@@ -15,13 +24,14 @@ export default class SettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('User name')
 			.setDesc('This is the name displayed to other users participating in collaborative editing.')
-			.addText(text => text
-				.setPlaceholder('Enter your name')
-				.setValue(this.plugin.settings.userName)
-				.onChange(async (value) => {
-					this.plugin.settings.userName = value;
-					await this.plugin.saveSettings();
-				}));
+			.addText(text => {
+				this.usernameComponent = text.setPlaceholder('Enter your name')
+					.setValue(this.plugin.settings.userName)
+					.onChange(async (value) => {
+						this.username = value;
+						this.validateUserName();
+					});
+			});
 
 
 		let textComponent: TextComponent;
@@ -37,11 +47,30 @@ export default class SettingTab extends PluginSettingTab {
 			.addColorPicker(color => color
 				.setValue(this.plugin.settings.color)
 				.onChange(async (value) => {
-					this.plugin.settings.color = value;
 					textComponent.setValue(value);
-					await this.plugin.saveSettings();
+					this.color = value;
 				}));
 	}
 
+	private validateUserName() {
+		if (!this.username.trim()) {
+			this.isValid = false;
+			this.usernameComponent.inputEl.style.border = '2px solid red';
+			new Notice("Enter your name");
+			return;
+		} else {
+			this.usernameComponent.inputEl.style.border = '';
+			this.isValid = true;
+		}
+	}
 
+	hide() {
+		if (this.isValid) {
+			this.events.emit(CHANGE_SETTING_EVENT, {
+				username: this.username,
+				color: this.color
+			});
+		}
+		super.hide();
+	}
 }
