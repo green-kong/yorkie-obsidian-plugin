@@ -14,13 +14,14 @@ export default class PeersModal extends Modal {
 	}
 
 	onOpen() {
+		const {contentEl} = this;
+		contentEl.empty();
 		this.createPeerEl(this.me);
 		this.others.forEach(this.createPeerEl);
 	}
 
 	private createPeerEl(presence: TYorkiePresence) {
 		const {contentEl} = this;
-		contentEl.empty();
 		const presenceElement = contentEl.createEl("div", {text: presence.userName});
 		presenceElement.style.color = presence.color;
 	}
