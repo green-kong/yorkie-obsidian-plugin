@@ -4,7 +4,7 @@ import { Notice } from "obsidian";
 import { EditorView } from "@codemirror/view";
 import YorkieDocument from "./yorkieDocument";
 import { Transaction } from "@codemirror/state";
-import YorkiePresence from "./yorkiePresence";
+import YorkiePresence, { TYorkiePresence } from "./yorkiePresence";
 
 export default class YorkieConnector {
 	private client: Client | null;
@@ -78,6 +78,12 @@ export default class YorkieConnector {
 	updateDocument(tx: Transaction) {
 		if (this.document) {
 			this.document.update(tx);
+		}
+	}
+
+	updatePresence(presence: TYorkiePresence) {
+		if (this.document) {
+			this.document.updatePresence(presence);
 		}
 	}
 }

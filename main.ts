@@ -17,6 +17,7 @@ import SettingTab from "./settings/settingTab";
 import YorkiePresence from "./connectors/yorkiePresence";
 import PeersModal from "./modals/peersModal";
 import { CHANGE_PRESENCE_EVENT, ChangePresenceEventDto } from "./events/changePresenceEvent";
+import { CHANGE_SETTING_EVENT, ChangeSettingEventDto } from "./events/changeSettingEvent";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -56,6 +57,19 @@ export default class YorkiePlugin extends Plugin {
 			if (dto.others && dto.me) {
 				peerListStatus.setText(`participants: ${dto.others.length + 1}`);
 				pm.setPresence(dto.me, dto.others);
+			}
+		});
+
+		this.events.on(CHANGE_SETTING_EVENT, async (dto: ChangeSettingEventDto) => {
+			const {username: newUserName, color: newColor} = dto;
+			const {userName: currentUserName, color: currentColor} = this.settings;
+			if (currentUserName !== newUserName || currentColor !== newColor) {
+				const presence = {
+					userName: newUserName,
+					color: newColor,
+				};
+				this.yorkieConnector.updatePresence(presence)
+				this.settings = presence;
 			}
 		});
 

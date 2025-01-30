@@ -113,4 +113,10 @@ export default class YorkieDocument {
 			adj += insertText.length - (toA - fromA);
 		});
 	}
+
+	updatePresence(presence: TYorkiePresence) {
+		this.document.update((_,remotePresence) => {
+			remotePresence.set(presence);
+		})
+	}
 }
