@@ -1,9 +1,10 @@
 import { EventEmitter } from "events";
-import yorkie, { Client, Document } from 'yorkie-js-sdk'
+import yorkie, { Client } from 'yorkie-js-sdk'
 import { Notice } from "obsidian";
 import { EditorView } from "@codemirror/view";
 import YorkieDocument from "./yorkieDocument";
 import { Transaction } from "@codemirror/state";
+import YorkiePresence from "./yorkiePresence";
 
 export default class YorkieConnector {
 	private client: Client | null;
@@ -20,14 +21,14 @@ export default class YorkieConnector {
 	 * Goal : maintain client / document detach & attach
 	 * Problem : By yorkie js sdk Issue, documentWatch is pending
 	 */
-	async connect(documentKey: string, view: EditorView) {
+	async connect(documentKey: string, view: EditorView, presence: YorkiePresence) {
 		try {
 			// if (!this.client) {
 			// 	await this.connectClient();
 			// }
 			// TODO: After YORKIE ISSUE change to maintain client
 			await this.connectClient();
-			await this.attachDocument(documentKey, view);
+			await this.attachDocument(documentKey, view, presence);
 			new Notice("Connection is SUCCESS!🔗");
 		} catch (error) {
 			console.error(error);
@@ -43,12 +44,14 @@ export default class YorkieConnector {
 		await this.client.activate();
 	}
 
-	async attachDocument(documentKey: string, view: EditorView) {
+	async attachDocument(documentKey: string, view: EditorView, presence: YorkiePresence) {
 		// if (this.document) {
 		// 	await this.detach();
 		// }
 		const document = new YorkieDocument(documentKey, view);
-		await this.client?.attach(document.document);
+		await this.client?.attach(document.document, {
+			initialPresence: {...presence}
+		});
 		document.setupInitialData();
 		this.document = document;
 	}

@@ -14,6 +14,7 @@ import {
 } from "./events/createOrEnterDocumentKeyEvent";
 import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
+import YorkiePresence from "./connectors/yorkiePresence";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -38,7 +39,8 @@ export default class YorkiePlugin extends Plugin {
 			const editor = this.app.workspace.activeEditor?.editor;
 			if (editor) {
 				const view = (editor as any).cm as EditorView;
-				await this.yorkieConnector.connect(documentKey, view);
+				const yorkiePresence = YorkiePresence.from(this.settings);
+				await this.yorkieConnector.connect(documentKey, view, yorkiePresence);
 			}
 		})
 
@@ -56,7 +58,8 @@ export default class YorkiePlugin extends Plugin {
 					const docKey = await this.frontmatterRepository.getDocumentKey();
 					const view = (leaf.view.editor as any).cm as EditorView;
 					if (docKey) {
-						await this.yorkieConnector.connect(docKey, view);
+						const yorkiePresence = YorkiePresence.from(this.settings);
+						await this.yorkieConnector.connect(docKey, view, yorkiePresence);
 					} else {
 						await this.yorkieConnector.disconnect();
 					}
