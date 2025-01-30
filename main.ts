@@ -28,8 +28,7 @@ export default class YorkiePlugin extends Plugin {
 	settings: Settings;
 
 	async onload() {
-		await this.loadSettings();
-		this.addSettingTab(new SettingTab(this.app, this));
+		await this.setUpSettings();
 		this.setEnvironmentVariable();
 		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events));
 		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.events))
@@ -79,6 +78,12 @@ export default class YorkiePlugin extends Plugin {
 			}
 		}));
 
+	}
+
+	private async setUpSettings() {
+		await this.loadSettings();
+		await this.saveSettings();
+		this.addSettingTab(new SettingTab(this.app, this));
 	}
 
 	private setEnvironmentVariable() {
