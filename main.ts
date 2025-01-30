@@ -12,20 +12,24 @@ import {
 	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
 	CreateOrEnterDocumentKeyEventDto
 } from "./events/createOrEnterDocumentKeyEvent";
+import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
+import SettingTab from "./settings/settingTab";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
 
 export default class YorkiePlugin extends Plugin {
 	basePath = (this.app.vault.adapter as any).basePath
-
 	leafChangeFlag = false;
 	events = new EventEmitter();
 	yorkieConnector: YorkieConnector = new YorkieConnector(this.events);
 	frontmatterRepository = new FrontmatterRepository(this.app)
 	enterDocumentKeyModal = new EnterDocumentKeyModal(this.app, this.events);
+	settings: Settings;
 
 	async onload() {
+		await this.loadSettings();
+		this.addSettingTab(new SettingTab(this.app, this));
 		this.setEnvironmentVariable();
 		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events));
 		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.events))
@@ -86,5 +90,13 @@ export default class YorkiePlugin extends Plugin {
 
 	onunload() {
 		this.yorkieConnector.disconnect();
+	}
+
+	async loadSettings() {
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+	}
+
+	async saveSettings() {
+		await this.saveData(this.settings);
 	}
 }
