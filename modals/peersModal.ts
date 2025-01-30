@@ -10,19 +10,18 @@ export default class PeersModal extends Modal {
 		this.modalEl.style.position = 'fixed';
 		this.modalEl.style.bottom = '23px';
 		this.modalEl.style.right = '10px';
-		this.modalEl.style.width = '200px';
 	}
 
 	onOpen() {
 		const {contentEl} = this;
 		contentEl.empty();
-		this.createPeerEl(this.me);
-		this.others.forEach(this.createPeerEl);
+		this.createPeerEl(this.me, contentEl, true);
+		this.others.forEach((other) => this.createPeerEl(other, contentEl, false));
 	}
 
-	private createPeerEl(presence: TYorkiePresence) {
-		const {contentEl} = this;
-		const presenceElement = contentEl.createEl("div", {text: presence.userName});
+	private createPeerEl(presence: TYorkiePresence, contentEl: HTMLElement, isMe: boolean) {
+		const userName = isMe ? presence.userName + '(me)' : presence.userName;
+		const presenceElement = contentEl.createEl("div", {text: userName});
 		presenceElement.style.color = presence.color;
 	}
 

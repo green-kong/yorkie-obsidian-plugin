@@ -38,7 +38,8 @@ export default class YorkieDocument {
 		if (!me) {
 			return;
 		}
-		const others = peers.filter((peer) => peer.clientID !== id);
+		const others = peers.filter((peer) => peer.clientID !== id)
+			.map((peer) => peer.presence);
 		this.events.emit(CHANGE_PRESENCE_EVENT, {me, others})
 	}
 
