@@ -2,10 +2,12 @@ import { generateRandomUserName } from "./generateRandomUserName";
 
 export interface Settings {
 	userName: string;
+	color: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-	userName: generateRandomUserName()
+	userName: generateRandomUserName(),
+	color: "#000"
 }
 
 
