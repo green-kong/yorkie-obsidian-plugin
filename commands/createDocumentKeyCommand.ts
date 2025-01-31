@@ -5,7 +5,7 @@ import { EventEmitter, once } from "events";
 import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
 import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
 import NoticeModal from "../modals/NoticeModal";
-import { CREATE_CONFIRM_EVENT } from "../events/createConfirmEvent";
+import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 
 export default class CreateDocumentKeyCommand implements Command {
 	id = "create document key";
@@ -30,7 +30,7 @@ export default class CreateDocumentKeyCommand implements Command {
 			const found = await this.frontmatterRepository.getDocumentKey();
 			if (!found) {
 				this.noticeModal.open();
-				const isConfirmed = (await once(this.events, CREATE_CONFIRM_EVENT))[0];
+				const isConfirmed = (await once(this.events, NOTICE_CONFIRM_EVENT))[0];
 				if (isConfirmed) {
 					await this.frontmatterRepository.saveDocumentKey(documentKey);
 					this.events.emit(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, {documentKey});

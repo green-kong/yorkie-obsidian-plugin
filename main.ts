@@ -25,10 +25,14 @@ export default class YorkiePlugin extends Plugin {
 	basePath = (this.app.vault.adapter as any).basePath
 	leafChangeFlag = false;
 	events = new EventEmitter();
+
 	yorkieConnector: YorkieConnector = new YorkieConnector(this.events);
+
 	frontmatterRepository = new FrontmatterRepository(this.app)
+
 	enterDocumentKeyModal = new EnterDocumentKeyModal(this.app, this.events);
 	noticeModal = new NoticeModal(this.app, this.events);
+
 	settings: Settings;
 
 	async onload() {
@@ -44,7 +48,7 @@ export default class YorkiePlugin extends Plugin {
 		this.setEnvironmentVariable();
 
 		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events, this.noticeModal));
-		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.events))
+		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.noticeModal, this.events))
 
 		this.events.on(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, async (dto: CreateOrEnterDocumentKeyEventDto) => {
 			const {documentKey} = dto;

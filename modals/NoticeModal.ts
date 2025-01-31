@@ -1,6 +1,6 @@
 import { App, Modal, Setting } from "obsidian";
 import { EventEmitter } from "events";
-import { CREATE_CONFIRM_EVENT } from "../events/createConfirmEvent";
+import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 
 export default class NoticeModal extends Modal {
 	isConfirmed = false;
@@ -69,6 +69,6 @@ export default class NoticeModal extends Modal {
 		}
 		const {contentEl} = this;
 		contentEl.empty();
-		this.events.emit(CREATE_CONFIRM_EVENT, this.isConfirmed);
+		this.events.emit(NOTICE_CONFIRM_EVENT, this.isConfirmed);
 	}
 };
