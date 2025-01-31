@@ -33,6 +33,7 @@ export default class YorkiePlugin extends Plugin {
 
 	async onload() {
 		const pm = new PeersModal(this.app);
+		const yorkieConnectionStatus = this.addStatusBarItem();
 		const peerListStatus = this.addStatusBarItem();
 		peerListStatus.onClickEvent(() => {
 			pm.open();
@@ -90,8 +91,12 @@ export default class YorkiePlugin extends Plugin {
 					if (docKey) {
 						const yorkiePresence = YorkiePresence.from(this.settings);
 						await this.yorkieConnector.connect(docKey, view, yorkiePresence);
+						peerListStatus.show();
+						yorkieConnectionStatus.setText('🟢 Connected')
 					} else {
 						await this.yorkieConnector.disconnect();
+						peerListStatus.hide();
+						yorkieConnectionStatus.setText('🔴 Disconnected')
 					}
 				}
 			})
