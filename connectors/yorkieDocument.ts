@@ -1,4 +1,4 @@
-import yorkie, { ActorID, Document, EditOpInfo, OperationInfo, Text } from 'yorkie-js-sdk'
+import yorkie, { ActorID, ConnectionChangedEvent, Document, EditOpInfo, OperationInfo, Text } from 'yorkie-js-sdk'
 import { Transaction, TransactionSpec } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { TYorkiePresence } from "./yorkiePresence";
@@ -116,8 +116,22 @@ export default class YorkieDocument {
 	}
 
 	updatePresence(presence: TYorkiePresence) {
-		this.document.update((_,remotePresence) => {
+		this.document.update((_, remotePresence) => {
 			remotePresence.set(presence);
 		})
+	}
+
+	/**
+	 * TODO : check yorkie js sdk issue
+	 * When offline (no Wi-Fi or other reasons), ConnectionChangeEvent rapidly alternates between 'connected' and 'disconnected' states.
+	 */
+	subscribeConnection() {
+		this.document.subscribe('connection', (event: ConnectionChangedEvent) => {
+			if (event.value === 'connected') {
+				console.log("connected");
+			} else {
+				console.log('disconnected!');
+			}
+		});
 	}
 }
