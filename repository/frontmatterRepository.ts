@@ -2,7 +2,7 @@ import { App, Notice, TFile } from "obsidian";
 import matter from "gray-matter";
 import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
 
-const DOCUMENT_KEY = 'document_key'
+const DOCUMENT_KEY = 'YORKIE_DOCUMENT_KEY';
 
 export default class FrontmatterRepository {
 	private readonly app: App;

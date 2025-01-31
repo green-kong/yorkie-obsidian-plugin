@@ -8,16 +8,14 @@ import YorkieConnector from "./connectors/yorkieConnector";
 import * as dotenv from 'dotenv'
 import { EditorView } from "@codemirror/view";
 import { Transaction } from "@codemirror/state";
-import {
-	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
-	CreateOrEnterDocumentKeyEventDto
-} from "./events/createOrEnterDocumentKeyEvent";
+import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, CreateOrEnterDocumentKeyEventDto } from "./events/createOrEnterDocumentKeyEvent";
 import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
 import YorkiePresence from "./connectors/yorkiePresence";
 import PeersModal from "./modals/peersModal";
 import { CHANGE_PRESENCE_EVENT, ChangePresenceEventDto } from "./events/changePresenceEvent";
 import { CHANGE_SETTING_EVENT, ChangeSettingEventDto } from "./events/changeSettingEvent";
+import { addCopyFunctionToDocumentKeyProperty } from "./view/controllYorkieDocumentKeyProperty";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -38,6 +36,7 @@ export default class YorkiePlugin extends Plugin {
 		peerListStatus.onClickEvent(() => {
 			pm.open();
 		})
+		addCopyFunctionToDocumentKeyProperty();
 
 		await this.setUpSettings();
 		this.setEnvironmentVariable();
@@ -51,6 +50,7 @@ export default class YorkiePlugin extends Plugin {
 				const view = (editor as any).cm as EditorView;
 				const yorkiePresence = YorkiePresence.from(this.settings);
 				await this.yorkieConnector.connect(documentKey, view, yorkiePresence);
+				addCopyFunctionToDocumentKeyProperty();
 			}
 		})
 
@@ -93,6 +93,7 @@ export default class YorkiePlugin extends Plugin {
 						await this.yorkieConnector.connect(docKey, view, yorkiePresence);
 						peerListStatus.show();
 						yorkieConnectionStatus.setText('🟢 Connected')
+						addCopyFunctionToDocumentKeyProperty();
 					} else {
 						await this.yorkieConnector.disconnect();
 						peerListStatus.hide();
@@ -115,7 +116,6 @@ export default class YorkiePlugin extends Plugin {
 				}
 			}
 		}));
-
 	}
 
 	private async setUpSettings() {
