@@ -16,6 +16,7 @@ import PeersModal from "./modals/peersModal";
 import { CHANGE_PRESENCE_EVENT, ChangePresenceEventDto } from "./events/changePresenceEvent";
 import { CHANGE_SETTING_EVENT, ChangeSettingEventDto } from "./events/changeSettingEvent";
 import { addCopyFunctionToDocumentKeyProperty } from "./view/controllYorkieDocumentKeyProperty";
+import NoticeModal from "./modals/NoticeModal";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -27,6 +28,7 @@ export default class YorkiePlugin extends Plugin {
 	yorkieConnector: YorkieConnector = new YorkieConnector(this.events);
 	frontmatterRepository = new FrontmatterRepository(this.app)
 	enterDocumentKeyModal = new EnterDocumentKeyModal(this.app, this.events);
+	noticeModal = new NoticeModal(this.app, this.events);
 	settings: Settings;
 
 	async onload() {
@@ -40,7 +42,8 @@ export default class YorkiePlugin extends Plugin {
 
 		await this.setUpSettings();
 		this.setEnvironmentVariable();
-		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events));
+
+		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events, this.noticeModal));
 		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.events))
 
 		this.events.on(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, async (dto: CreateOrEnterDocumentKeyEventDto) => {
