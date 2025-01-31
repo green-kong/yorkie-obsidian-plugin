@@ -1,3 +1,19 @@
 .metadata-property[data-property-key="YORKIE_DOCUMENT_KEY"] > .metadata-property-key > .metadata-property-icon {
 	display: none;
 }
+
+button.yorkie-color-purple {
+	background-color: #7852ee;
+}
+
+button.yorkie-cancel-btn {
+	background-color: #e93147;
+}
+
+li.yorkie-warning-li {
+	margin-bottom: 5px;
+}
+
+div.yorkie-notice-modal {
+	width: 1000px;
+}
