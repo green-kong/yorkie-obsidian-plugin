@@ -26,7 +26,7 @@ export default class YorkieConnector {
 			// 	await this.connectClient();
 			// }
 			// TODO: After YORKIE ISSUE change to maintain client
-			if(this.client){
+			if (this.client) {
 				await this.disconnect();
 			}
 			await this.connectClient();
@@ -70,6 +70,7 @@ export default class YorkieConnector {
 	}
 
 	async disconnect() {
+		console.log("deactivate");
 		await this.client?.deactivate()
 		this.client = null;
 		this.document = null;

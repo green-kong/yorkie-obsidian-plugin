@@ -60,11 +60,7 @@ export default class YorkiePlugin extends Plugin {
 			const editor = this.app.workspace.activeEditor?.editor;
 			if (editor) {
 				const view = (editor as any).cm as EditorView;
-				const yorkiePresence = YorkiePresence.from(this.settings);
-				await this.yorkieConnector.connect(documentKey, view, yorkiePresence);
-				peerListStatus.show();
-				yorkieConnectionStatus.setText('🟢 Connected')
-				addCopyFunctionToDocumentKeyProperty();
+				await this.connect(documentKey, view, peerListStatus, yorkieConnectionStatus);
 			}
 		})
 
@@ -109,11 +105,7 @@ export default class YorkiePlugin extends Plugin {
 					const docKey = await this.frontmatterRepository.getDocumentKey();
 					const view = (leaf.view.editor as any).cm as EditorView;
 					if (docKey) {
-						const yorkiePresence = YorkiePresence.from(this.settings);
-						await this.yorkieConnector.connect(docKey, view, yorkiePresence);
-						peerListStatus.show();
-						yorkieConnectionStatus.setText('🟢 Connected')
-						addCopyFunctionToDocumentKeyProperty();
+						await this.connect(docKey, view, peerListStatus, yorkieConnectionStatus);
 					} else {
 						await this.yorkieConnector.disconnect();
 						peerListStatus.hide();
@@ -138,6 +130,19 @@ export default class YorkiePlugin extends Plugin {
 		}));
 	}
 
+	private async connect(docKey: string, view: EditorView, peerListStatus: HTMLElement, yorkieConnectionStatus: HTMLElement) {
+		try {
+			const yorkiePresence = YorkiePresence.from(this.settings);
+			await this.yorkieConnector.connect(docKey, view, yorkiePresence);
+			peerListStatus.show();
+			yorkieConnectionStatus.setText('🟢 Connected')
+			addCopyFunctionToDocumentKeyProperty();
+		} catch (error) {
+			console.error('error!!');
+			console.error(error);
+		}
+	}
+
 	private async setUpSettings() {
 		await this.loadSettings();
 		await this.saveSettings();
@@ -151,8 +156,9 @@ export default class YorkiePlugin extends Plugin {
 		})
 	}
 
-	onunload() {
-		this.yorkieConnector.disconnect();
+	async onunload() {
+		console.log('adfa');
+		await this.yorkieConnector.disconnect();
 	}
 
 	async loadSettings() {
