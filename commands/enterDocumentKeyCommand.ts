@@ -4,7 +4,7 @@ import EnterDocumentKeyModal from "../modals/enterDocumentKeyModal";
 import { EventEmitter, once } from "events";
 import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
 import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
-import NoticeModal from "../modals/NoticeModal";
+import NoticeModal from "../modals/noticeModal";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 
 export default class EnterDocumentKeyCommand implements Command {

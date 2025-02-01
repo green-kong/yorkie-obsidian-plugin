@@ -4,7 +4,7 @@ import { generateDocumentKey } from "./documentKeyGenerator";
 import { EventEmitter, once } from "events";
 import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
 import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
-import NoticeModal from "../modals/NoticeModal";
+import NoticeModal from "../modals/noticeModal";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 
 export default class CreateDocumentKeyCommand implements Command {
