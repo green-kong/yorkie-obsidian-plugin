@@ -31,8 +31,6 @@ export default class RemoveDocumentKeyCommand implements Command {
 			this.removeNoticeModal.open();
 			const isConfirmed = (await once(this.events, NOTICE_CONFIRM_EVENT))[0];
 			if (isConfirmed) {
-				await this.frontmatterRepository.removeDocumentKey();
-				new Notice('Document key is removed');
 				this.events.emit(REMOVE_DOCUMENT_KEY_EVENT);
 			}
 		} catch (error) {

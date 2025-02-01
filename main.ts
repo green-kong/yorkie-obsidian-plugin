@@ -1,4 +1,4 @@
-import { MarkdownView, Plugin } from 'obsidian';
+import { MarkdownView, Notice, Plugin } from 'obsidian';
 import FrontmatterRepository from "./repository/frontmatterRepository";
 import CreateDocumentKeyCommand from "./commands/createDocumentKeyCommand";
 import EnterDocumentKeyModal from "./modals/enterDocumentKeyModal";
@@ -86,9 +86,9 @@ export default class YorkiePlugin extends Plugin {
 		});
 
 		this.events.on(REMOVE_DOCUMENT_KEY_EVENT, async () => {
-			await this.yorkieConnector.disconnect();
-			peerListStatus.hide();
-			yorkieConnectionStatus.setText('🔴 Disconnected');
+			await this.disconnected(peerListStatus, yorkieConnectionStatus);
+			await this.frontmatterRepository.removeDocumentKey();
+			new Notice('Document key is removed');
 		});
 
 		/**
@@ -107,9 +107,7 @@ export default class YorkiePlugin extends Plugin {
 					if (docKey) {
 						await this.connect(docKey, view, peerListStatus, yorkieConnectionStatus);
 					} else {
-						await this.yorkieConnector.disconnect();
-						peerListStatus.hide();
-						yorkieConnectionStatus.setText('🔴 Disconnected')
+						await this.disconnected(peerListStatus, yorkieConnectionStatus);
 					}
 				}
 			})
@@ -128,6 +126,12 @@ export default class YorkiePlugin extends Plugin {
 				}
 			}
 		}));
+	}
+
+	private async disconnected(peerListStatus: HTMLElement, yorkieConnectionStatus: HTMLElement) {
+		await this.yorkieConnector.disconnect();
+		peerListStatus.hide();
+		yorkieConnectionStatus.setText('🔴 Disconnected');
 	}
 
 	private async connect(docKey: string, view: EditorView, peerListStatus: HTMLElement, yorkieConnectionStatus: HTMLElement) {

@@ -70,7 +70,6 @@ export default class YorkieConnector {
 	}
 
 	async disconnect() {
-		console.log("deactivate");
 		await this.client?.deactivate()
 		this.client = null;
 		this.document = null;

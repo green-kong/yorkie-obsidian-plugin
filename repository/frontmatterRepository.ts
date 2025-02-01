@@ -4,7 +4,6 @@ import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedE
 
 const DOCUMENT_KEY = 'YORKIE_DOCUMENT_KEY';
 
-// TODO: (refactor) extract Notice from these methods
 export default class FrontmatterRepository {
 	private readonly app: App;
 
