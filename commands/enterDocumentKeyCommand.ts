@@ -6,6 +6,7 @@ import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedE
 import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
 import CreateOrEnterNoticeModal from "../modals/createOrEnterNoticeModal";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
+import YorkiePluginError from "../errors/yorkiePluginError";
 
 export default class EnterDocumentKeyCommand implements Command {
 	id = "enter document key";
@@ -43,10 +44,11 @@ export default class EnterDocumentKeyCommand implements Command {
 				this.events.emit(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, {documentKey})
 			}
 		} catch (error) {
-			if (error instanceof ActivatedFileIsNotExistedError) {
+			if (error instanceof YorkiePluginError) {
+				new Notice(error.noticeMessage);
 				return;
 			}
-			throw error;
+			console.error(error);
 		}
 	}
 }
