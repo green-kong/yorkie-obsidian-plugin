@@ -4,7 +4,7 @@ import { generateDocumentKey } from "./documentKeyGenerator";
 import { EventEmitter, once } from "events";
 import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
 import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
-import NoticeModal from "../modals/noticeModal";
+import CreateOrEnterNoticeModal from "../modals/createOrEnterNoticeModal";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 
 export default class CreateDocumentKeyCommand implements Command {
@@ -12,12 +12,12 @@ export default class CreateDocumentKeyCommand implements Command {
 	name = "create document key";
 	private readonly frontmatterRepository: FrontmatterRepository;
 	private readonly events: EventEmitter;
-	private readonly noticeModal: NoticeModal;
+	private readonly noticeModal: CreateOrEnterNoticeModal;
 
 	constructor(
 		frontmatterRepository: FrontmatterRepository,
 		events: EventEmitter,
-		noticeModal: NoticeModal
+		noticeModal: CreateOrEnterNoticeModal
 	) {
 		this.frontmatterRepository = frontmatterRepository;
 		this.events = events;

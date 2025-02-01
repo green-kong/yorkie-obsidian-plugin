@@ -4,21 +4,21 @@ import EnterDocumentKeyModal from "../modals/enterDocumentKeyModal";
 import { EventEmitter, once } from "events";
 import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
 import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
-import NoticeModal from "../modals/noticeModal";
+import CreateOrEnterNoticeModal from "../modals/createOrEnterNoticeModal";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 
 export default class EnterDocumentKeyCommand implements Command {
 	id = "enter document key";
 	name = "enter document key";
 	private readonly enterDocumentKeyModal: EnterDocumentKeyModal;
-	private readonly noticeModal: NoticeModal;
+	private readonly noticeModal: CreateOrEnterNoticeModal;
 	private readonly frontmatterRepository: FrontmatterRepository;
 	private readonly events: EventEmitter;
 
 	constructor(
 		frontmatterRepository: FrontmatterRepository,
 		enterDocumentKeyModal: EnterDocumentKeyModal,
-		noticeModal: NoticeModal,
+		noticeModal: CreateOrEnterNoticeModal,
 		events: EventEmitter
 	) {
 		this.frontmatterRepository = frontmatterRepository;

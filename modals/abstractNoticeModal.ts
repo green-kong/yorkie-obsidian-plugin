@@ -2,7 +2,7 @@ import { App, Modal, Setting } from "obsidian";
 import { EventEmitter } from "events";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 
-export default class NoticeModal extends Modal {
+export default abstract class AbstractNoticeModal extends Modal {
 	isConfirmed = false;
 	private confirmBtn: HTMLButtonElement;
 	private readonly events: EventEmitter;
@@ -11,7 +11,7 @@ export default class NoticeModal extends Modal {
 		this.close();
 	}
 
-	constructor(app: App, events: EventEmitter) {
+	protected constructor(app: App, events: EventEmitter) {
 		super(app);
 		this.containerEl.querySelector('.modal')?.addClass('yorkie-notice-modal');
 		this.events = events;
@@ -23,14 +23,7 @@ export default class NoticeModal extends Modal {
 
 		contentEl.createEl('h2', {text: 'Important Notice'});
 		const warningEl = contentEl.createEl('div', {cls: 'yorkie-warning'});
-		warningEl.innerHTML = `
-			<p>Please be aware of the following:</p>
-			<ul>
-				<li class="yorkie-warning-li">Edits made while your device is offline will not sync with the remote server.<br>These changes may be lost when you go back online.</li>
-				<li class="yorkie-warning-li">The plugin manager bears no responsibility for issues arising from the leakage of document keys.</li>
-				<li class="yorkie-warning-li">Entering a document key into an already open document will result in the loss of current content.</li>
-			</ul>
-    	`;
+		warningEl.innerHTML = this.getNoticeContent();
 
 		new Setting(contentEl)
 			.setName('I have read, understood, and accept the above warnings.')
@@ -71,4 +64,6 @@ export default class NoticeModal extends Modal {
 		contentEl.empty();
 		this.events.emit(NOTICE_CONFIRM_EVENT, this.isConfirmed);
 	}
+
+	protected abstract getNoticeContent(): string;
 };
