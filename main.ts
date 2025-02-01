@@ -19,6 +19,7 @@ import { addCopyFunctionToDocumentKeyProperty } from "./view/controllYorkieDocum
 import CreateOrEnterNoticeModal from "./modals/createOrEnterNoticeModal";
 import RemoveDocumentKeyCommand from "./commands/removeDocumentKeyCommand";
 import RemoveNoticeModal from "./modals/removeNoticeModal";
+import { REMOVE_DOCUMENT_KEY_EVENT } from "./events/removeDocumentKeyEvents";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -61,6 +62,8 @@ export default class YorkiePlugin extends Plugin {
 				const view = (editor as any).cm as EditorView;
 				const yorkiePresence = YorkiePresence.from(this.settings);
 				await this.yorkieConnector.connect(documentKey, view, yorkiePresence);
+				peerListStatus.show();
+				yorkieConnectionStatus.setText('🟢 Connected')
 				addCopyFunctionToDocumentKeyProperty();
 			}
 		})
@@ -84,6 +87,12 @@ export default class YorkiePlugin extends Plugin {
 				this.settings = presence;
 				await this.saveSettings();
 			}
+		});
+
+		this.events.on(REMOVE_DOCUMENT_KEY_EVENT, async () => {
+			await this.yorkieConnector.disconnect();
+			peerListStatus.hide();
+			yorkieConnectionStatus.setText('🔴 Disconnected');
 		});
 
 		/**

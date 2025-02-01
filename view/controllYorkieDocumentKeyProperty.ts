@@ -10,20 +10,25 @@ export const addCopyFunctionToDocumentKeyProperty = () => {
 }
 
 const setProperty = (element: Element | null) => {
-	if (element instanceof HTMLInputElement) {
-		element.readOnly = true;
-	} else {
-		element?.setAttr("contenteditable", false);
-	}
-	element?.addEventListener('click', async () => {
-		const textToCopy = valueDiv?.textContent;
-		if (textToCopy) {
-			try {
-				await navigator.clipboard.writeText(textToCopy);
-				new Notice("✅ Yorkie Document key is copied!")
-			} catch (err) {
-				new Notice("❌ Yorkie Document key is not copied!")
-			}
+	try {
+
+		if (element instanceof HTMLInputElement) {
+			element.readOnly = true;
+		} else {
+			element?.setAttr("contenteditable", false);
 		}
-	});
+		element?.addEventListener('click', async () => {
+			const textToCopy = valueDiv?.textContent;
+			if (textToCopy) {
+				try {
+					await navigator.clipboard.writeText(textToCopy);
+					new Notice("✅ Yorkie Document key is copied!")
+				} catch (err) {
+					new Notice("❌ Yorkie Document key is not copied!")
+				}
+			}
+		});
+	} catch (error){
+		console.log(error);
+	}
 };
