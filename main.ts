@@ -8,7 +8,10 @@ import YorkieConnector from "./connectors/yorkieConnector";
 import * as dotenv from 'dotenv'
 import { EditorView } from "@codemirror/view";
 import { Transaction } from "@codemirror/state";
-import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, CreateOrEnterDocumentKeyEventDto } from "./events/createOrEnterDocumentKeyEvent";
+import {
+	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
+	CreateOrEnterDocumentKeyEventDto
+} from "./events/createOrEnterDocumentKeyEvent";
 import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
 import YorkiePresence from "./connectors/yorkiePresence";
@@ -20,6 +23,7 @@ import CreateOrEnterNoticeModal from "./modals/createOrEnterNoticeModal";
 import RemoveDocumentKeyCommand from "./commands/removeDocumentKeyCommand";
 import RemoveNoticeModal from "./modals/removeNoticeModal";
 import { REMOVE_DOCUMENT_KEY_EVENT } from "./events/removeDocumentKeyEvents";
+import DocumentListWithIcon from "./view/documentListWithIcon";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -40,6 +44,16 @@ export default class YorkiePlugin extends Plugin {
 	settings: Settings;
 
 	async onload() {
+		/*this.app.workspace.onLayoutReady(async () => {
+			await sleep(3000);
+			console.log(this.app.workspace.containerEl);
+			console.log(this.app.workspace.containerEl.querySelector('.nav-file-title'));
+		});*/
+
+		this.app.workspace.onLayoutReady(() => {
+			new DocumentListWithIcon(this.app).init();
+		});
+
 		const pm = new PeersModal(this.app);
 		const yorkieConnectionStatus = this.addStatusBarItem();
 		const peerListStatus = this.addStatusBarItem();
