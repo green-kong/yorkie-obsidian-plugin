@@ -41,6 +41,8 @@ export default class YorkiePlugin extends Plugin {
 	createOrEnterNoticeModal = new CreateOrEnterNoticeModal(this.app, this.events);
 	removeNoticeModal = new RemoveNoticeModal(this.app, this.events);
 
+	documentListWithIcon: DocumentListWithIcon;
+
 	settings: Settings;
 
 	async onload() {
@@ -51,8 +53,8 @@ export default class YorkiePlugin extends Plugin {
 		});*/
 
 		this.app.workspace.onLayoutReady(async () => {
-			const documentListWithIcon = new DocumentListWithIcon(this.app);
-			await documentListWithIcon.init();
+			this.documentListWithIcon = new DocumentListWithIcon(this.app);
+			await this.documentListWithIcon.init();
 		});
 
 		const pm = new PeersModal(this.app);
@@ -76,6 +78,7 @@ export default class YorkiePlugin extends Plugin {
 			if (editor) {
 				const view = (editor as any).cm as EditorView;
 				await this.connect(documentKey, view, peerListStatus, yorkieConnectionStatus);
+				await this.documentListWithIcon.refresh();
 			}
 		})
 
@@ -104,6 +107,7 @@ export default class YorkiePlugin extends Plugin {
 			await this.disconnected(peerListStatus, yorkieConnectionStatus);
 			await this.frontmatterRepository.removeDocumentKey();
 			new Notice('Document key is removed');
+			await this.documentListWithIcon.refresh();
 		});
 
 		/**
