@@ -50,8 +50,9 @@ export default class YorkiePlugin extends Plugin {
 			console.log(this.app.workspace.containerEl.querySelector('.nav-file-title'));
 		});*/
 
-		this.app.workspace.onLayoutReady(() => {
-			new DocumentListWithIcon(this.app).init();
+		this.app.workspace.onLayoutReady(async () => {
+			const documentListWithIcon = new DocumentListWithIcon(this.app);
+			await documentListWithIcon.init();
 		});
 
 		const pm = new PeersModal(this.app);

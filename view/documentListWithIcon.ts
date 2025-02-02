@@ -11,9 +11,9 @@ export default class DocumentListWithIcon {
 		this.app = app;
 	}
 
-	init() {
+	async init() {
+		const connectedDocumentsPath = await this.getConnectedDocumentsPath();
 		const observer = new MutationObserver((mutations: MutationRecord[], obs: MutationObserver) => {
-			const connectedDocumentsPath = this.getConnectedDocumentsPath();
 			const connectedDocumentElements = connectedDocumentsPath.map((path) => this.app.workspace.containerEl.querySelector(`.nav-file-title[data-path="${path}"]`))
 				.filter((element): element is Element => element !== null);
 			if (connectedDocumentsPath.length === connectedDocumentElements.length) {
@@ -31,15 +31,18 @@ export default class DocumentListWithIcon {
 			childList: true,
 			subtree: true
 		});
-		// addIcon('yorkie-icon', icon);
 	}
 
-
-	private getConnectedDocumentsPath() {
+	private async getConnectedDocumentsPath() {
 		const files = this.app.vault.getMarkdownFiles();
-		return files
-			.filter(async (file) => await this.hasDocumentKey(file))
-			.map((file) => file.path);
+		const fileWithDocumentKey: TFile[] = [];
+		for (const file of files) {
+			const hasDocumentKey = await this.hasDocumentKey(file);
+			if (hasDocumentKey) {
+				fileWithDocumentKey.push(file);
+			}
+		}
+		return fileWithDocumentKey.map((file) => file.path);
 	}
 
 	private async hasDocumentKey(file: TFile) {
