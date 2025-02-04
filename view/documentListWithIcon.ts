@@ -12,7 +12,6 @@ export default class DocumentListWithIcon {
 	}
 
 	async init() {
-		console.log("어째서?");
 		const connectedDocumentsPath = await this.getConnectedDocumentsPath();
 		const observer = new MutationObserver((mutations: MutationRecord[], obs: MutationObserver) => {
 			const connectedDocumentElements = connectedDocumentsPath.map((path) => this.app.workspace.containerEl.querySelector(`.nav-file-title[data-path="${path}"]`))
@@ -34,13 +33,10 @@ export default class DocumentListWithIcon {
 		const connectedDocumentElements = connectedDocumentsPath
 			.map((path) => this.app.workspace.containerEl.querySelector(`.nav-file-title[data-path="${path}"]`))
 			.filter((element): element is Element => element !== null);
-		console.log(connectedDocumentElements);
-		console.log(connectedDocumentsPath);
 		connectedDocumentElements.forEach(this.createIcon);
 	}
 
 	private createIcon(element: Element) {
-		console.log("??");
 		const icon = document.createElement('span');
 		icon.classList.add('yorkie-icon');
 		icon.innerHTML = yorkieIcon;

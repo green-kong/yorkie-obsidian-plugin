@@ -46,12 +46,6 @@ export default class YorkiePlugin extends Plugin {
 	settings: Settings;
 
 	async onload() {
-		/*this.app.workspace.onLayoutReady(async () => {
-			await sleep(3000);
-			console.log(this.app.workspace.containerEl);
-			console.log(this.app.workspace.containerEl.querySelector('.nav-file-title'));
-		});*/
-
 		this.app.workspace.onLayoutReady(async () => {
 			this.documentListWithIcon = new DocumentListWithIcon(this.app);
 			await this.documentListWithIcon.init();
