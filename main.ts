@@ -8,7 +8,10 @@ import YorkieConnector from "./connectors/yorkieConnector";
 import * as dotenv from 'dotenv'
 import { EditorView } from "@codemirror/view";
 import { Transaction } from "@codemirror/state";
-import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, CreateOrEnterDocumentKeyEventDto } from "./events/createOrEnterDocumentKeyEvent";
+import {
+	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
+	CreateOrEnterDocumentKeyEventDto
+} from "./events/createOrEnterDocumentKeyEvent";
 import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
 import YorkiePresence from "./connectors/yorkiePresence";
@@ -20,6 +23,8 @@ import CreateOrEnterNoticeModal from "./modals/createOrEnterNoticeModal";
 import RemoveDocumentKeyCommand from "./commands/removeDocumentKeyCommand";
 import RemoveNoticeModal from "./modals/removeNoticeModal";
 import { REMOVE_DOCUMENT_KEY_EVENT } from "./events/removeDocumentKeyEvents";
+import DocumentListWithIcon from "./view/documentListWithIcon";
+import FileReader, { ReadFileResult } from "./utils/fileReader";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -31,15 +36,23 @@ export default class YorkiePlugin extends Plugin {
 
 	yorkieConnector: YorkieConnector = new YorkieConnector(this.events);
 
+	fileReader = new FileReader(this.app);
 	frontmatterRepository = new FrontmatterRepository(this.app)
 
 	enterDocumentKeyModal = new EnterDocumentKeyModal(this.app, this.events);
 	createOrEnterNoticeModal = new CreateOrEnterNoticeModal(this.app, this.events);
 	removeNoticeModal = new RemoveNoticeModal(this.app, this.events);
 
+	documentListWithIcon: DocumentListWithIcon;
+
 	settings: Settings;
 
 	async onload() {
+		this.app.workspace.onLayoutReady(async () => {
+			this.documentListWithIcon = new DocumentListWithIcon(this.app);
+			await this.documentListWithIcon.init();
+		});
+
 		const pm = new PeersModal(this.app);
 		const yorkieConnectionStatus = this.addStatusBarItem();
 		const peerListStatus = this.addStatusBarItem();
@@ -51,16 +64,17 @@ export default class YorkiePlugin extends Plugin {
 		await this.setUpSettings();
 		this.setEnvironmentVariable();
 
-		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events, this.createOrEnterNoticeModal));
-		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.createOrEnterNoticeModal, this.events));
-		this.addCommand(new RemoveDocumentKeyCommand(this.frontmatterRepository, this.events, this.removeNoticeModal));
+		this.addCommand(new CreateDocumentKeyCommand(this.frontmatterRepository, this.events, this.createOrEnterNoticeModal, this.fileReader));
+		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.createOrEnterNoticeModal, this.events, this.fileReader));
+		this.addCommand(new RemoveDocumentKeyCommand(this.frontmatterRepository, this.events, this.removeNoticeModal, this.fileReader));
 
 		this.events.on(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, async (dto: CreateOrEnterDocumentKeyEventDto) => {
-			const {documentKey} = dto;
+			const {documentKey, file} = dto;
 			const editor = this.app.workspace.activeEditor?.editor;
 			if (editor) {
 				const view = (editor as any).cm as EditorView;
 				await this.connect(documentKey, view, peerListStatus, yorkieConnectionStatus);
+				await this.documentListWithIcon.addIcon(file);
 			}
 		})
 
@@ -85,10 +99,11 @@ export default class YorkiePlugin extends Plugin {
 			}
 		});
 
-		this.events.on(REMOVE_DOCUMENT_KEY_EVENT, async () => {
+		this.events.on(REMOVE_DOCUMENT_KEY_EVENT, async (fileResult: ReadFileResult) => {
 			await this.disconnected(peerListStatus, yorkieConnectionStatus);
-			await this.frontmatterRepository.removeDocumentKey();
+			await this.frontmatterRepository.removeDocumentKey(fileResult);
 			new Notice('Document key is removed');
+			await this.documentListWithIcon.removeIcon(fileResult.activatedFile);
 		});
 
 		/**
@@ -102,7 +117,8 @@ export default class YorkiePlugin extends Plugin {
 				}
 				this.leafChangeFlag = true;
 				if (leaf && leaf.view instanceof MarkdownView) {
-					const docKey = await this.frontmatterRepository.getDocumentKey();
+					const fileResult = await this.fileReader.readActivatedFile();
+					const docKey = await this.frontmatterRepository.getDocumentKey(fileResult);
 					const view = (leaf.view.editor as any).cm as EditorView;
 					if (docKey) {
 						await this.connect(docKey, view, peerListStatus, yorkieConnectionStatus);
