@@ -1,4 +1,4 @@
-import { App, TFile } from "obsidian";
+import { App, Notice, TFile } from "obsidian";
 import { yorkieIcon } from "./icon";
 import matter from "gray-matter";
 import { DOCUMENT_KEY } from "../repository/frontmatterRepository";
@@ -28,12 +28,21 @@ export default class DocumentListWithIcon {
 		});
 	}
 
-	async refresh() {
-		const connectedDocumentsPath = await this.getConnectedDocumentsPath();
-		const connectedDocumentElements = connectedDocumentsPath
-			.map((path) => this.app.workspace.containerEl.querySelector(`.nav-file-title[data-path="${path}"]`))
-			.filter((element): element is Element => element !== null);
-		connectedDocumentElements.forEach(this.createIcon);
+	async addIcon(file: TFile) {
+		const element = await this.findElementByFile(file);
+		if (element) {
+			this.createIcon(element);
+		}
+	}
+
+	private async findElementByFile(file: TFile) {
+		const element = this.app.workspace.containerEl
+			.querySelector(`.nav-file-title[data-path="${file.path}"]`);
+		if (element === null) {
+			new Notice("Something wrong!");
+			return null;
+		}
+		return element;
 	}
 
 	private createIcon(element: Element) {
@@ -41,6 +50,20 @@ export default class DocumentListWithIcon {
 		icon.classList.add('yorkie-icon');
 		icon.innerHTML = yorkieIcon;
 		element.appendChild(icon);
+	}
+
+	async removeIcon(file: TFile) {
+		const element = await this.findElementByFile(file);
+		if (element) {
+			this.deleteIconFrom(element);
+		}
+	}
+
+	private deleteIconFrom(element: Element) {
+		const iconElement = element.querySelector('.yorkie-icon');
+		if (iconElement) {
+			element.removeChild(iconElement);
+		}
 	}
 
 	private async getConnectedDocumentsPath() {
