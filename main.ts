@@ -177,7 +177,6 @@ export default class YorkiePlugin extends Plugin {
 	}
 
 	async onunload() {
-		console.log('adfa');
 		await this.yorkieConnector.disconnect();
 	}
 
