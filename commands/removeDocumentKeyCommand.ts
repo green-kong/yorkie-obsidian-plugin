@@ -39,7 +39,7 @@ export default class RemoveDocumentKeyCommand implements Command {
 			this.removeNoticeModal.open();
 			const isConfirmed = (await once(this.events, NOTICE_CONFIRM_EVENT))[0];
 			if (isConfirmed) {
-				this.events.emit(REMOVE_DOCUMENT_KEY_EVENT, fileResult);
+				this.events.emit(REMOVE_DOCUMENT_KEY_EVENT, {documentKey: currentDocumentKey, file:fileResult});
 			}
 		} catch (error) {
 			if (error instanceof YorkiePluginError) {

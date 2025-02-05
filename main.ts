@@ -22,9 +22,9 @@ import { addCopyFunctionToDocumentKeyProperty } from "./view/controllYorkieDocum
 import CreateOrEnterNoticeModal from "./modals/createOrEnterNoticeModal";
 import RemoveDocumentKeyCommand from "./commands/removeDocumentKeyCommand";
 import RemoveNoticeModal from "./modals/removeNoticeModal";
-import { REMOVE_DOCUMENT_KEY_EVENT } from "./events/removeDocumentKeyEvents";
+import { REMOVE_DOCUMENT_KEY_EVENT, RemoveDocumentKeyEventDto } from "./events/removeDocumentKeyEvents";
 import DocumentListWithIcon from "./view/documentListWithIcon";
-import FileReader, { ReadFileResult } from "./utils/fileReader";
+import FileReader from "./utils/fileReader";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -75,6 +75,12 @@ export default class YorkiePlugin extends Plugin {
 				const view = (editor as any).cm as EditorView;
 				await this.connect(documentKey, view, peerListStatus, yorkieConnectionStatus);
 				await this.documentListWithIcon.addIcon(file);
+				const documentKeys = [...this.settings.documentKeys];
+				documentKeys.push(documentKey);
+				this.settings = {
+					...this.settings,
+					documentKeys
+				}
 			}
 		})
 
@@ -94,16 +100,27 @@ export default class YorkiePlugin extends Plugin {
 					color: newColor,
 				};
 				this.yorkieConnector.updatePresence(presence)
-				this.settings = presence;
+				this.settings = {
+					...this.settings,
+					...presence
+				};
 				await this.saveSettings();
 			}
 		});
 
-		this.events.on(REMOVE_DOCUMENT_KEY_EVENT, async (fileResult: ReadFileResult) => {
+		this.events.on(REMOVE_DOCUMENT_KEY_EVENT, async (dto: RemoveDocumentKeyEventDto) => {
+			const {documentKey, file: fileResult} = dto;
 			await this.disconnected(peerListStatus, yorkieConnectionStatus);
 			await this.frontmatterRepository.removeDocumentKey(fileResult);
 			new Notice('Document key is removed');
 			await this.documentListWithIcon.removeIcon(fileResult.activatedFile);
+			const documentKeys = [...this.settings.documentKeys];
+			documentKeys.remove(documentKey);
+			this.settings = {
+				...this.settings,
+				documentKeys
+			}
+			await this.saveSettings();
 		});
 
 		/**

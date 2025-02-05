@@ -2,7 +2,6 @@ import { Command, Notice } from "obsidian";
 import FrontmatterRepository from "../repository/frontmatterRepository";
 import EnterDocumentKeyModal from "../modals/enterDocumentKeyModal";
 import { EventEmitter, once } from "events";
-import ActivatedFileIsNotExistedError from "../errors/activatedFileIsNotExistedError";
 import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
 import CreateOrEnterNoticeModal from "../modals/createOrEnterNoticeModal";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
