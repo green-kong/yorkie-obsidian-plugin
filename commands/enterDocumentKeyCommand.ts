@@ -2,11 +2,12 @@ import { Command, Notice } from "obsidian";
 import FrontmatterRepository from "../repository/frontmatterRepository";
 import EnterDocumentKeyModal from "../modals/enterDocumentKeyModal";
 import { EventEmitter, once } from "events";
-import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
+import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, EventType } from "../events/createOrEnterDocumentKeyEvent";
 import CreateOrEnterNoticeModal from "../modals/createOrEnterNoticeModal";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 import YorkiePluginError from "../errors/yorkiePluginError";
 import FileReader from "../utils/fileReader";
+import { Settings } from "../settings/settings";
 
 export default class EnterDocumentKeyCommand implements Command {
 	id = "enter document key";
@@ -22,7 +23,7 @@ export default class EnterDocumentKeyCommand implements Command {
 		enterDocumentKeyModal: EnterDocumentKeyModal,
 		noticeModal: CreateOrEnterNoticeModal,
 		events: EventEmitter,
-		fileReader: FileReader
+		fileReader: FileReader,
 	) {
 		this.frontmatterRepository = frontmatterRepository;
 		this.enterDocumentKeyModal = enterDocumentKeyModal;
@@ -44,8 +45,11 @@ export default class EnterDocumentKeyCommand implements Command {
 			if (isConfirmed) {
 				this.enterDocumentKeyModal.open();
 				const documentKey = (await once(this.events, 'submit'))[0];
-				await this.frontmatterRepository.saveDocumentKey(documentKey, fileResult);
-				this.events.emit(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, {documentKey, file: fileResult.activatedFile})
+				this.events.emit(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, {
+					type: EventType.ENTER,
+					documentKey,
+					file: fileResult.activatedFile
+				})
 			}
 		} catch (error) {
 			if (error instanceof YorkiePluginError) {

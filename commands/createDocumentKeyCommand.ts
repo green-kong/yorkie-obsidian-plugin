@@ -2,7 +2,7 @@ import { Command, Notice } from "obsidian";
 import FrontmatterRepository from "../repository/frontmatterRepository";
 import { generateDocumentKey } from "./documentKeyGenerator";
 import { EventEmitter, once } from "events";
-import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT } from "../events/createOrEnterDocumentKeyEvent";
+import { CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, EventType } from "../events/createOrEnterDocumentKeyEvent";
 import CreateOrEnterNoticeModal from "../modals/createOrEnterNoticeModal";
 import { NOTICE_CONFIRM_EVENT } from "../events/noticeConfirmEvent";
 import YorkiePluginError from "../errors/yorkiePluginError";
@@ -41,7 +41,11 @@ export default class CreateDocumentKeyCommand implements Command {
 			const isConfirmed = (await once(this.events, NOTICE_CONFIRM_EVENT))[0];
 			if (isConfirmed) {
 				await this.frontmatterRepository.saveDocumentKey(documentKey, file);
-				this.events.emit(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, {documentKey, file: file.activatedFile});
+				this.events.emit(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, {
+					type: EventType.CREATE,
+					documentKey,
+					file: file.activatedFile
+				});
 				return;
 			}
 		} catch (error) {
