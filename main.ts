@@ -10,7 +10,8 @@ import { EditorView } from "@codemirror/view";
 import { Transaction } from "@codemirror/state";
 import {
 	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
-	CreateOrEnterDocumentKeyEventDto
+	CreateOrEnterDocumentKeyEventDto,
+	EventType
 } from "./events/createOrEnterDocumentKeyEvent";
 import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
@@ -22,9 +23,10 @@ import { addCopyFunctionToDocumentKeyProperty } from "./view/controllYorkieDocum
 import CreateOrEnterNoticeModal from "./modals/createOrEnterNoticeModal";
 import RemoveDocumentKeyCommand from "./commands/removeDocumentKeyCommand";
 import RemoveNoticeModal from "./modals/removeNoticeModal";
-import { REMOVE_DOCUMENT_KEY_EVENT } from "./events/removeDocumentKeyEvents";
+import { REMOVE_DOCUMENT_KEY_EVENT, RemoveDocumentKeyEventDto } from "./events/removeDocumentKeyEvents";
 import DocumentListWithIcon from "./view/documentListWithIcon";
-import FileReader, { ReadFileResult } from "./utils/fileReader";
+import FileReader from "./utils/fileReader";
+import axios from "axios";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -69,13 +71,26 @@ export default class YorkiePlugin extends Plugin {
 		this.addCommand(new RemoveDocumentKeyCommand(this.frontmatterRepository, this.events, this.removeNoticeModal, this.fileReader));
 
 		this.events.on(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, async (dto: CreateOrEnterDocumentKeyEventDto) => {
-			const {documentKey, file} = dto;
+			const {type, documentKey, file} = dto;
+
 			const editor = this.app.workspace.activeEditor?.editor;
+			if (type === EventType.ENTER && !await this.validateDocumentKey(documentKey)) {
+				return;
+			}
+			const fileResult = await this.fileReader.readActivatedFile();
+			await this.frontmatterRepository.saveDocumentKey(documentKey, fileResult);
 			if (editor) {
 				const view = (editor as any).cm as EditorView;
 				await this.connect(documentKey, view, peerListStatus, yorkieConnectionStatus);
 				await this.documentListWithIcon.addIcon(file);
+				const documentKeys = [...this.settings.documentKeys];
+				documentKeys.push(documentKey);
+				this.settings = {
+					...this.settings,
+					documentKeys
+				}
 			}
+			await this.saveSettings();
 		})
 
 		this.events.on(CHANGE_PRESENCE_EVENT, async (dto: ChangePresenceEventDto) => {
@@ -94,16 +109,27 @@ export default class YorkiePlugin extends Plugin {
 					color: newColor,
 				};
 				this.yorkieConnector.updatePresence(presence)
-				this.settings = presence;
+				this.settings = {
+					...this.settings,
+					...presence
+				};
 				await this.saveSettings();
 			}
 		});
 
-		this.events.on(REMOVE_DOCUMENT_KEY_EVENT, async (fileResult: ReadFileResult) => {
+		this.events.on(REMOVE_DOCUMENT_KEY_EVENT, async (dto: RemoveDocumentKeyEventDto) => {
+			const {documentKey, file: fileResult} = dto;
 			await this.disconnected(peerListStatus, yorkieConnectionStatus);
 			await this.frontmatterRepository.removeDocumentKey(fileResult);
 			new Notice('Document key is removed');
 			await this.documentListWithIcon.removeIcon(fileResult.activatedFile);
+			const documentKeys = [...this.settings.documentKeys];
+			documentKeys.remove(documentKey);
+			this.settings = {
+				...this.settings,
+				documentKeys
+			}
+			await this.saveSettings();
 		});
 
 		/**
@@ -177,7 +203,6 @@ export default class YorkiePlugin extends Plugin {
 	}
 
 	async onunload() {
-		console.log('adfa');
 		await this.yorkieConnector.disconnect();
 	}
 
@@ -187,5 +212,33 @@ export default class YorkiePlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	private async validateDocumentKey(documentKey: string) {
+		if (this.settings.documentKeys.contains(documentKey)) {
+			new Notice("This document key is already existed!");
+			return false;
+		}
+		if (!await this.isExistedDocumentKeyInRemote(documentKey)) {
+			new Notice("This document key is not existed in remote");
+			return false;
+		}
+		return true;
+	}
+
+	private async isExistedDocumentKeyInRemote(documentKey: string) {
+		try {
+			const axiosResponse = await axios.post("https://api.yorkie.dev/yorkie.v1.AdminService/GetDocument", {
+					project_name: 'obsidian_yorkie_plugin',
+					document_key: documentKey
+				},
+				{
+					headers: {Authorization: process.env.YORKIE_API_SECRET_KEY}
+				}
+			);
+			return axiosResponse.status === 200;
+		} catch (error) {
+			return false;
+		}
 	}
 }
