@@ -5,6 +5,7 @@ import { EditorView } from "@codemirror/view";
 import YorkieDocument from "./yorkieDocument";
 import { Transaction } from "@codemirror/state";
 import YorkieUserInformation, { TYorkieUserInformation } from "./presence/yorkieUserInformation";
+import YorkieCursor from "./presence/yorkieCursor";
 
 export default class YorkieConnector {
 	private client: Client | null;
@@ -46,7 +47,7 @@ export default class YorkieConnector {
 		await this.client.activate();
 	}
 
-	async attachDocument(documentKey: string, view: EditorView, presence: YorkieUserInformation) {
+	async attachDocument(documentKey: string, view: EditorView, userInformation: YorkieUserInformation) {
 		// if (this.document) {
 		// 	await this.detach();
 		// }
@@ -56,7 +57,7 @@ export default class YorkieConnector {
 		const clientId = this.client.getID();
 		const document = new YorkieDocument(documentKey, view, clientId, this.events);
 		await this.client?.attach(document.document, {
-			initialPresence: {...presence}
+			initialPresence: {userInformation, cursor: null}
 		});
 		document.setupInitialData();
 		this.document = document;
@@ -84,6 +85,12 @@ export default class YorkieConnector {
 	updateUserInformation(userInformation: TYorkieUserInformation) {
 		if (this.document) {
 			this.document.updateUserInformation(userInformation);
+		}
+	}
+
+	async updateCursor(yorkieCursor: YorkieCursor) {
+		if (this.document) {
+			this.document.updateCursor(yorkieCursor);
 		}
 	}
 }

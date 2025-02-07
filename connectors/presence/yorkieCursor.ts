@@ -1,16 +1,20 @@
-import YorkieUserInformation from "./yorkieUserInformation";
+import { TYorkieDocument } from "../yorkieDocument";
 
 export type TYorkieCursor = {
-	lineNumber: string;
-	column: string;
+	head: number;
+	anchor: number;
 }
 
 export default class YorkieCursor implements TYorkieCursor {
-	lineNumber: string;
-	column: string;
+	head: number;
+	anchor: number;
 
-	constructor(lineNumber: string, column: string) {
-		this.lineNumber = lineNumber;
-		this.column = column;
+	constructor(head: number, anchor: number) {
+		this.head = head;
+		this.anchor = anchor;
+	}
+
+	convertToPosRange(yorkieContent: TYorkieDocument) {
+		return yorkieContent.content.indexRangeToPosRange([this.head, this.anchor])
 	}
 }

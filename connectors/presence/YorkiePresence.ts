@@ -1,17 +1,17 @@
 import { TYorkieUserInformation } from "./yorkieUserInformation";
-import { TYorkieCursor } from "./yorkieCursor";
+import { TextPosStructRange } from "yorkie-js-sdk";
 
 export type TYorkiePresence = {
 	userInformation: TYorkieUserInformation;
-	cursor: TYorkieCursor;
+	cursor: TextPosStructRange | null;
 }
 
-export default class YorkiePresence implements TYorkiePresence{
+export default class YorkiePresence implements TYorkiePresence {
 	userInformation: TYorkieUserInformation;
-	cursor: TYorkieCursor;
+	cursor: TextPosStructRange;
 
-	constructor(userInformation: TYorkieUserInformation, cursor: TYorkieCursor) {
+	constructor(userInformation: TYorkieUserInformation, cursor: TextPosStructRange) {
 		this.userInformation = userInformation;
 		this.cursor = cursor;
 	}
-};
+}

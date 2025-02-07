@@ -6,7 +6,7 @@ import EnterDocumentKeyCommand from "./commands/enterDocumentKeyCommand";
 import { EventEmitter } from 'events';
 import YorkieConnector from "./connectors/yorkieConnector";
 import * as dotenv from 'dotenv'
-import { EditorView } from "@codemirror/view";
+import { EditorView, ViewUpdate } from "@codemirror/view";
 import { Transaction } from "@codemirror/state";
 import {
 	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
@@ -15,9 +15,9 @@ import {
 } from "./events/createOrEnterDocumentKeyEvent";
 import { DEFAULT_SETTINGS, Settings } from "./settings/settings";
 import SettingTab from "./settings/settingTab";
-import YorkiePresence from "./connectors/yorkiePresence";
+import YorkieUserInformation from "./connectors/presence/yorkieUserInformation";
 import PeersModal from "./modals/peersModal";
-import { CHANGE_PRESENCE_EVENT, ChangePresenceEventDto } from "./events/changePresenceEvent";
+import { CHANGE_USER_INFORMATION_EVENT, ChangeUserInformationEventDto } from "./events/changePresenceEvent";
 import { CHANGE_SETTING_EVENT, ChangeSettingEventDto } from "./events/changeSettingEvent";
 import { addCopyFunctionToDocumentKeyProperty } from "./view/controllYorkieDocumentKeyProperty";
 import CreateOrEnterNoticeModal from "./modals/createOrEnterNoticeModal";
@@ -27,6 +27,8 @@ import { REMOVE_DOCUMENT_KEY_EVENT, RemoveDocumentKeyEventDto } from "./events/r
 import DocumentListWithIcon from "./view/documentListWithIcon";
 import FileReader from "./utils/fileReader";
 import axios from "axios";
+import YorkieCursor from "./connectors/presence/yorkieCursor";
+import { CHANGE_CURSOR_EVENT, ChangeCursorEventDto } from "./events/changeCursorEvent";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -93,7 +95,7 @@ export default class YorkiePlugin extends Plugin {
 			await this.saveSettings();
 		})
 
-		this.events.on(CHANGE_PRESENCE_EVENT, async (dto: ChangePresenceEventDto) => {
+		this.events.on(CHANGE_USER_INFORMATION_EVENT, async (dto: ChangeUserInformationEventDto) => {
 			if (dto.others && dto.me) {
 				peerListStatus.setText(`participants: ${dto.others.length + 1}`);
 				pm.setPresence(dto.me, dto.others);
@@ -108,7 +110,7 @@ export default class YorkiePlugin extends Plugin {
 					userName: newUserName,
 					color: newColor,
 				};
-				this.yorkieConnector.updatePresence(presence)
+				this.yorkieConnector.updateUserInformation(presence)
 				this.settings = {
 					...this.settings,
 					...presence
@@ -131,6 +133,11 @@ export default class YorkiePlugin extends Plugin {
 			}
 			await this.saveSettings();
 		});
+
+		this.events.on(CHANGE_CURSOR_EVENT, async (dto: ChangeCursorEventDto) => {
+			const {userName, color, head, anchor} = dto;
+			console.log(userName, color, head, anchor);
+		})
 
 		/**
 		 * when opened tab is changed, judge this file is yorkie document or not
@@ -164,8 +171,15 @@ export default class YorkiePlugin extends Plugin {
 					if (tx.annotation(Transaction.remote)) {
 						continue;
 					}
+
 					this.yorkieConnector.updateDocument(tx);
 				}
+			}
+
+			// 커서 위치 추출 (추가된 부분)
+			if (viewUpdate.selectionSet) {
+				const {head, anchor} = viewUpdate.view.state.selection.main;
+				this.yorkieConnector.updateCursor(new YorkieCursor(head, anchor));
 			}
 		}));
 	}
@@ -178,7 +192,7 @@ export default class YorkiePlugin extends Plugin {
 
 	private async connect(docKey: string, view: EditorView, peerListStatus: HTMLElement, yorkieConnectionStatus: HTMLElement) {
 		try {
-			const yorkiePresence = YorkiePresence.from(this.settings);
+			const yorkiePresence = YorkieUserInformation.from(this.settings);
 			await this.yorkieConnector.connect(docKey, view, yorkiePresence);
 			peerListStatus.show();
 			yorkieConnectionStatus.setText('🟢 Connected')

@@ -5,8 +5,10 @@ import { TYorkieUserInformation } from "./presence/yorkieUserInformation";
 import { EventEmitter } from "events";
 import { CHANGE_USER_INFORMATION_EVENT } from "../events/changePresenceEvent";
 import { TYorkiePresence } from "./presence/YorkiePresence";
+import YorkieCursor from "./presence/yorkieCursor";
+import { CHANGE_CURSOR_EVENT } from "../events/changeCursorEvent";
 
-type TYorkieDocument = {
+export type TYorkieDocument = {
 	content: Text
 }
 
@@ -26,6 +28,23 @@ export default class YorkieDocument {
 		this.subscribeSnapshot();
 		this.subscribeRemoteChange();
 		this.subscribePeerListChange(clientId);
+		this.subscribeCursorChange();
+	}
+
+	private subscribeCursorChange() {
+		this.document.subscribe('others', (event) => {
+			const {presence: {userInformation: {userName, color}, cursor}} = event.value;
+			if (!cursor) {
+				return;
+			}
+			const [head, anchor] = this.document.getRoot().content.posRangeToIndexRange(cursor);
+			this.events.emit(CHANGE_CURSOR_EVENT, {
+				userName,
+				color,
+				head,
+				anchor
+			})
+		});
 	}
 
 	private subscribePeerListChange(clientId: string | undefined) {
@@ -128,6 +147,13 @@ export default class YorkieDocument {
 	updateUserInformation(userInformation: TYorkieUserInformation) {
 		this.document.update((_, remotePresence) => {
 			remotePresence.set({userInformation});
+		})
+	}
+
+	updateCursor(yorkieCursor: YorkieCursor) {
+		this.document.update((root, remotePresence) => {
+			const cursor = yorkieCursor.convertToPosRange(root);
+			remotePresence.set({cursor});
 		})
 	}
 
