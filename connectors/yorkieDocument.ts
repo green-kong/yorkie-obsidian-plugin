@@ -37,7 +37,7 @@ export default class YorkieDocument {
 			if (!cursor) {
 				return;
 			}
-			const [head, anchor] = this.document.getRoot().content.posRangeToIndexRange(cursor);
+			const [anchor, head] = this.document.getRoot().content.posRangeToIndexRange(cursor);
 			this.events.emit(CHANGE_CURSOR_EVENT, {
 				userName,
 				color,

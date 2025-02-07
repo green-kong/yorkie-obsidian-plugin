@@ -15,6 +15,6 @@ export default class YorkieCursor implements TYorkieCursor {
 	}
 
 	convertToPosRange(yorkieContent: TYorkieDocument) {
-		return yorkieContent.content.indexRangeToPosRange([this.head, this.anchor])
+		return yorkieContent.content.indexRangeToPosRange([this.anchor, this.head])
 	}
 }

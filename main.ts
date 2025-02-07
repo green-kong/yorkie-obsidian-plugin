@@ -6,8 +6,8 @@ import EnterDocumentKeyCommand from "./commands/enterDocumentKeyCommand";
 import { EventEmitter } from 'events';
 import YorkieConnector from "./connectors/yorkieConnector";
 import * as dotenv from 'dotenv'
-import { EditorView, ViewUpdate } from "@codemirror/view";
-import { Transaction } from "@codemirror/state";
+import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
+import { RangeSetBuilder, StateEffect, StateField, Transaction } from "@codemirror/state";
 import {
 	CREATE_OR_ENTER_DOCUMENT_KEY_EVENT,
 	CreateOrEnterDocumentKeyEventDto,
@@ -32,6 +32,36 @@ import { CHANGE_CURSOR_EVENT, ChangeCursorEventDto } from "./events/changeCursor
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
+
+// 데코레이션 업데이트 효과
+const updateYSelection = StateEffect.define<DecorationSet>();
+
+// 상태 필드 설정
+const ySelectionField = StateField.define<DecorationSet>({
+	create() {
+		return Decoration.none
+	},
+	update(deco, tr) {
+		// 문서 변경 사항 맵핑
+		deco = deco.map(tr.changes);
+
+		// 효과 처리
+		for (const effect of tr.effects) {
+			if (effect.is(updateYSelection)) {
+				deco = effect.value;
+			}
+		}
+		return deco;
+	},
+	provide: f => EditorView.decorations.from(f)
+});
+
+function parseColorToRGB(hexColor: string) {
+	const r = parseInt(hexColor.slice(1, 3), 16);
+	const g = parseInt(hexColor.slice(3, 5), 16);
+	const b = parseInt(hexColor.slice(5, 7), 16);
+	return `${r}, ${g}, ${b}`;
+}
 
 export default class YorkiePlugin extends Plugin {
 	basePath = (this.app.vault.adapter as any).basePath
@@ -64,6 +94,7 @@ export default class YorkiePlugin extends Plugin {
 			pm.open();
 		})
 		addCopyFunctionToDocumentKeyProperty();
+
 
 		await this.setUpSettings();
 		this.setEnvironmentVariable();
@@ -134,10 +165,54 @@ export default class YorkiePlugin extends Plugin {
 			await this.saveSettings();
 		});
 
+
 		this.events.on(CHANGE_CURSOR_EVENT, async (dto: ChangeCursorEventDto) => {
 			const {userName, color, head, anchor} = dto;
-			console.log(userName, color, head, anchor);
-		})
+			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+
+			if (!activeView?.editor) return;
+
+			const view = (activeView.editor as any).cm as EditorView;
+			const builder = new RangeSetBuilder<Decoration>();
+
+			// 데코레이션 생성 로직
+			const start = Math.min(head, anchor);
+			const end = Math.max(head, anchor);
+			const startLine = view.state.doc.lineAt(start);
+			const endLine = view.state.doc.lineAt(end);
+
+			const selectionDeco = Decoration.mark({
+				attributes: {
+					style: `background-color: rgba(${parseColorToRGB(color)}, 0.5)`
+				},
+				class: "cm-ySelection"
+			});
+
+			// 단일 라인 처리
+			if (startLine.number === endLine.number) {
+				builder.add(start, end, selectionDeco);
+			}
+			// 다중 라인 처리
+			else {
+				// 첫 라인
+				builder.add(start, startLine.to, selectionDeco);
+
+				// 중간 라인들
+				for (let i = startLine.number + 1; i < endLine.number; i++) {
+					const line = view.state.doc.line(i);
+					builder.add(line.from, line.to, selectionDeco);
+				}
+
+				// 마지막 라인
+				builder.add(endLine.from, end, selectionDeco);
+			}
+
+			// 트랜잭션 발송
+			view.dispatch({
+				effects: updateYSelection.of(builder.finish())
+			});
+		});
+
 
 		/**
 		 * when opened tab is changed, judge this file is yorkie document or not
@@ -161,6 +236,9 @@ export default class YorkiePlugin extends Plugin {
 				}
 			})
 		);
+
+		// 플러그인 활성화 시
+		this.registerEditorExtension(ySelectionField);
 
 		this.registerEditorExtension(EditorView.updateListener.of((viewUpdate) => {
 			if (viewUpdate.docChanged) {
