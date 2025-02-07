@@ -1,9 +1,10 @@
 import yorkie, { ActorID, ConnectionChangedEvent, Document, EditOpInfo, OperationInfo, Text } from 'yorkie-js-sdk'
 import { Transaction, TransactionSpec } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { TYorkiePresence } from "./yorkiePresence";
+import { TYorkieUserInformation } from "./presence/yorkieUserInformation";
 import { EventEmitter } from "events";
-import { CHANGE_PRESENCE_EVENT } from "../events/changePresenceEvent";
+import { CHANGE_USER_INFORMATION_EVENT } from "../events/changePresenceEvent";
+import { TYorkiePresence } from "./presence/YorkiePresence";
 
 type TYorkieDocument = {
 	content: Text
@@ -29,18 +30,27 @@ export default class YorkieDocument {
 
 	private subscribePeerListChange(clientId: string | undefined) {
 		this.document.subscribe('presence', (event) => {
-			this.displayPeerList(this.document.getPresences(), clientId);
+			const peers = this.document.getPresences()
+				.map(presence => ({
+					clientID: presence.clientID,
+					userInformation:
+					presence.presence.userInformation
+				}))
+			this.displayPeerList(peers, clientId);
 		});
 	}
 
-	private displayPeerList(peers: Array<{ clientID: ActorID; presence: TYorkiePresence }>, id: string | undefined) {
-		const me = peers.find((peer) => peer.clientID === id)?.presence;
+	private displayPeerList(peers: Array<{
+		clientID: ActorID;
+		userInformation: TYorkieUserInformation
+	}>, id: string | undefined) {
+		const me = peers.find((peer) => peer.clientID === id)?.userInformation;
 		if (!me) {
 			return;
 		}
 		const others = peers.filter((peer) => peer.clientID !== id)
-			.map((peer) => peer.presence);
-		this.events.emit(CHANGE_PRESENCE_EVENT, {me, others})
+			.map((peer) => peer.userInformation);
+		this.events.emit(CHANGE_USER_INFORMATION_EVENT, {me, others})
 	}
 
 	private subscribeSnapshot() {
@@ -115,9 +125,9 @@ export default class YorkieDocument {
 		});
 	}
 
-	updatePresence(presence: TYorkiePresence) {
+	updateUserInformation(userInformation: TYorkieUserInformation) {
 		this.document.update((_, remotePresence) => {
-			remotePresence.set(presence);
+			remotePresence.set({userInformation});
 		})
 	}
 
