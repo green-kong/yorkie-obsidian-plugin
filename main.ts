@@ -29,7 +29,7 @@ import FileReader from "./utils/fileReader";
 import axios from "axios";
 import YorkieCursor from "./connectors/presence/yorkieCursor";
 import { CHANGE_CURSOR_EVENT, ChangeCursorEventDto } from "./events/changeCursorEvent";
-import { drawCursor, ySelectionField } from "./view/cursor/drawCursor";
+import { drawCursor, yCursorField, ySelectionField } from "./view/cursor/drawCursor";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -166,7 +166,7 @@ export default class YorkiePlugin extends Plugin {
 			})
 		);
 
-		this.registerEditorExtension(ySelectionField);
+		this.registerEditorExtension([ySelectionField, yCursorField]);
 
 		this.registerEditorExtension(EditorView.updateListener.of((viewUpdate) => {
 			if (viewUpdate.docChanged) {
