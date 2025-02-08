@@ -8,7 +8,7 @@ import { cursorFieldConfig, updateYCursor } from "./cursorFieldConfig";
 import { selectionFieldConfig, updateYSelection } from "./selectionFieldConfig";
 
 export const yCursorField = StateField.define<Map<string, DecorationSet>>(cursorFieldConfig);
-export const ySelectionField = StateField.define<DecorationSet>(selectionFieldConfig);
+export const ySelectionField = StateField.define<Map<string, DecorationSet>>(selectionFieldConfig);
 
 const generateSelectionBuilder = (
 	color: string,
@@ -69,7 +69,10 @@ export const drawCursor = (dto: ChangeCursorEventDto, activeView: MarkdownView |
 
 	view.dispatch({
 		effects: [
-			updateYSelection.of(selectionBuilder.finish()),
+			updateYSelection.of({
+				clientID,
+				decoration: selectionBuilder.finish()
+			}),
 			updateYCursor.of({
 				clientID,
 				decoration: cursorBuilder.finish()
