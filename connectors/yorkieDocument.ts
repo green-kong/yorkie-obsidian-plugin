@@ -33,12 +33,13 @@ export default class YorkieDocument {
 
 	private subscribeCursorChange() {
 		this.document.subscribe('others', (event) => {
-			const {presence: {userInformation: {userName, color}, cursor}} = event.value;
+			const {clientID, presence: {userInformation: {userName, color}, cursor}} = event.value;
 			if (!cursor) {
 				return;
 			}
 			const [anchor, head] = this.document.getRoot().content.posRangeToIndexRange(cursor);
 			this.events.emit(CHANGE_CURSOR_EVENT, {
+				clientID,
 				userName,
 				color,
 				head,

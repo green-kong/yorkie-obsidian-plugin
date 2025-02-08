@@ -1,22 +1,47 @@
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
-import { StateEffect, StateField, Transaction } from "@codemirror/state";
+import { Range, StateEffect, StateField, Transaction } from "@codemirror/state";
 
-export const updateYCursor = StateEffect.define<DecorationSet>();
+export type CursorDecorationType = { clientID: string, decoration: DecorationSet };
+export const updateYCursor = StateEffect.define<CursorDecorationType>();
 
 export const cursorFieldConfig = {
 	create() {
-		return Decoration.none;
+		return new Map<string, DecorationSet>();
 	},
-	update(deco: DecorationSet, tr: Transaction) {
-		deco = deco.map(tr.changes);
+	update(cursors: Map<string, DecorationSet>, tr: Transaction) {
+		const newCursors = new Map(cursors);
+
+		for (const [userId, deco] of newCursors) {
+			newCursors.set(userId, deco.map(tr.changes));
+		}
+
 		for (const effect of tr.effects) {
 			if (effect.is(updateYCursor)) {
-				deco = effect.value;
+				const {clientID, decoration} = effect.value;
+				newCursors.set(clientID, decoration);
 			}
 		}
-		return deco;
+
+		return newCursors;
 	},
-	provide(f: StateField<DecorationSet>) {
-		return EditorView.decorations.from(f);
+	provide(field: StateField<Map<string, DecorationSet>>) {
+		return EditorView.decorations.compute([field], state => {
+			const cursors = state.field(field);
+			const allRanges: Range<Decoration>[] = [];
+
+			for (const decoSet of cursors.values()) {
+				const iter = decoSet.iter();
+				while (iter.value) {
+					allRanges.push({
+						from: iter.from,
+						to: iter.to,
+						value: iter.value
+					});
+					iter.next();
+				}
+			}
+
+			return Decoration.set(allRanges, true);
+		});
 	}
 }

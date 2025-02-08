@@ -7,7 +7,7 @@ import { parseColorToRGB } from "./parseColor";
 import { cursorFieldConfig, updateYCursor } from "./cursorFieldConfig";
 import { selectionFieldConfig, updateYSelection } from "./selectionFieldConfig";
 
-export const yCursorField = StateField.define<DecorationSet>(cursorFieldConfig);
+export const yCursorField = StateField.define<Map<string, DecorationSet>>(cursorFieldConfig);
 export const ySelectionField = StateField.define<DecorationSet>(selectionFieldConfig);
 
 const generateSelectionBuilder = (
@@ -55,7 +55,7 @@ function generateCursorBuilder(userName: string, color: string, head: number, an
 
 export const drawCursor = (dto: ChangeCursorEventDto, activeView: MarkdownView | null) => {
 	if (!activeView?.editor) return;
-	const {userName, color, head, anchor} = dto;
+	const {clientID, userName, color, head, anchor} = dto;
 
 	const view = (activeView.editor as any).cm as EditorView;
 
@@ -70,7 +70,10 @@ export const drawCursor = (dto: ChangeCursorEventDto, activeView: MarkdownView |
 	view.dispatch({
 		effects: [
 			updateYSelection.of(selectionBuilder.finish()),
-			updateYCursor.of(cursorBuilder.finish())
+			updateYCursor.of({
+				clientID,
+				decoration: cursorBuilder.finish()
+			})
 		]
 	});
 };
