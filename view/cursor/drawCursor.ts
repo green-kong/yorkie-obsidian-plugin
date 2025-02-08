@@ -1,46 +1,14 @@
 import { ChangeCursorEventDto } from "../../events/changeCursorEvent";
 import { MarkdownView } from "obsidian";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
-import { Line, RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
+import { Line, RangeSetBuilder, StateField } from "@codemirror/state";
 import { CursorWidget } from "./CursorWidget";
 import { parseColorToRGB } from "./parseColor";
+import { cursorFieldConfig, updateYCursor } from "./cursorFieldConfig";
+import { selectionFieldConfig, updateYSelection } from "./selectionFieldConfig";
 
-const updateYCursor = StateEffect.define<DecorationSet>();
-export const yCursorField = StateField.define<DecorationSet>({
-	create() {
-		return Decoration.none
-	},
-	update(deco, tr) {
-		deco = deco.map(tr.changes);
-		for (const effect of tr.effects) {
-			if (effect.is(updateYCursor)) {
-				deco = effect.value;
-			}
-		}
-		return deco;
-	},
-	provide: f => EditorView.decorations.from(f)
-});
-
-const updateYSelection = StateEffect.define<DecorationSet>();
-
-export const ySelectionField = StateField.define<DecorationSet>({
-	create() {
-		return Decoration.none
-	},
-	update(deco, tr) {
-		deco = deco.map(tr.changes);
-
-		for (const effect of tr.effects) {
-			if (effect.is(updateYSelection)) {
-				deco = effect.value;
-			}
-		}
-		return deco;
-	},
-	provide: f => EditorView.decorations.from(f)
-});
-
+export const yCursorField = StateField.define<DecorationSet>(cursorFieldConfig);
+export const ySelectionField = StateField.define<DecorationSet>(selectionFieldConfig);
 
 const generateSelectionBuilder = (
 	color: string,
@@ -73,28 +41,31 @@ const generateSelectionBuilder = (
 	return selectionBuilder;
 }
 
+function generateCursorBuilder(userName: string, color: string, head: number, anchor: number) {
+	const cursorBuilder = new RangeSetBuilder<Decoration>();
+
+	const cursorDeco = Decoration.widget({
+		widget: new CursorWidget(userName, color)
+	});
+
+	const cursorPosition = Math.max(head, anchor);
+	cursorBuilder.add(cursorPosition, cursorPosition, cursorDeco);
+	return cursorBuilder;
+}
+
 export const drawCursor = (dto: ChangeCursorEventDto, activeView: MarkdownView | null) => {
 	if (!activeView?.editor) return;
 	const {userName, color, head, anchor} = dto;
 
 	const view = (activeView.editor as any).cm as EditorView;
-	const cursorBuilder = new RangeSetBuilder<Decoration>();
 
 	const start = Math.min(head, anchor);
 	const end = Math.max(head, anchor);
 	const startLine = view.state.doc.lineAt(start);
 	const endLine = view.state.doc.lineAt(end);
 
-
 	const selectionBuilder = generateSelectionBuilder(color, startLine, endLine, start, end, view);
-
-	const cursorDeco = Decoration.widget({
-		widget: new CursorWidget(userName, color)
-	});
-
-
-	const cursorPosition = Math.max(head, anchor);
-	cursorBuilder.add(cursorPosition, cursorPosition, cursorDeco);
+	const cursorBuilder = generateCursorBuilder(userName, color, head, anchor);
 
 	view.dispatch({
 		effects: [
