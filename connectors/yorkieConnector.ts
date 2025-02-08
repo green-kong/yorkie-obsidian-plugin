@@ -4,7 +4,8 @@ import { Notice } from "obsidian";
 import { EditorView } from "@codemirror/view";
 import YorkieDocument from "./yorkieDocument";
 import { Transaction } from "@codemirror/state";
-import YorkiePresence, { TYorkiePresence } from "./yorkiePresence";
+import YorkieUserInformation, { TYorkieUserInformation } from "./presence/yorkieUserInformation";
+import YorkieCursor from "./presence/yorkieCursor";
 
 export default class YorkieConnector {
 	private client: Client | null;
@@ -20,7 +21,7 @@ export default class YorkieConnector {
 	 * Goal : maintain client / document detach & attach
 	 * Problem : By yorkie js sdk Issue, documentWatch is pending
 	 */
-	async connect(documentKey: string, view: EditorView, presence: YorkiePresence) {
+	async connect(documentKey: string, view: EditorView, presence: YorkieUserInformation) {
 		try {
 			// if (!this.client) {
 			// 	await this.connectClient();
@@ -46,7 +47,7 @@ export default class YorkieConnector {
 		await this.client.activate();
 	}
 
-	async attachDocument(documentKey: string, view: EditorView, presence: YorkiePresence) {
+	async attachDocument(documentKey: string, view: EditorView, userInformation: YorkieUserInformation) {
 		// if (this.document) {
 		// 	await this.detach();
 		// }
@@ -56,7 +57,7 @@ export default class YorkieConnector {
 		const clientId = this.client.getID();
 		const document = new YorkieDocument(documentKey, view, clientId, this.events);
 		await this.client?.attach(document.document, {
-			initialPresence: {...presence}
+			initialPresence: {userInformation, cursor: null}
 		});
 		document.setupInitialData();
 		this.document = document;
@@ -81,9 +82,15 @@ export default class YorkieConnector {
 		}
 	}
 
-	updatePresence(presence: TYorkiePresence) {
+	updateUserInformation(userInformation: TYorkieUserInformation) {
 		if (this.document) {
-			this.document.updatePresence(presence);
+			this.document.updateUserInformation(userInformation);
+		}
+	}
+
+	async updateCursor(yorkieCursor: YorkieCursor) {
+		if (this.document) {
+			this.document.updateCursor(yorkieCursor);
 		}
 	}
 }

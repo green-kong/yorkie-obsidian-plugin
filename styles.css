@@ -39,3 +39,36 @@ span.yorkie-icon svg {
 	width:13px;
 	height: 13px;
 }
+
+.cm-ySelection {
+	border-radius: 2px;
+}
+
+.y-cursor-container {
+	position: absolute;
+	display: inline-block;
+	height: 1em;
+	line-height: 1em;
+	vertical-align: top;
+	top: 0.5em;
+}
+
+.y-cursor-line {
+	border-left-width: 2px;
+	border-left-style: solid;
+	height: 1em;
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.y-cursor-label {
+	position: absolute;
+	bottom: 100%;
+	color: white;
+	padding: 0 2px;
+	font-size: 0.4em;
+	border-radius: 2px;
+	white-space: nowrap;
+	background-color: rgba(0, 0, 0, 0.7);
+}

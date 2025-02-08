@@ -1,8 +1,8 @@
-import { TYorkiePresence } from "../connectors/yorkiePresence";
+import { TYorkieUserInformation } from "../connectors/presence/yorkieUserInformation";
 
-export const CHANGE_PRESENCE_EVENT = "changePresenceEvent";
+export const CHANGE_USER_INFORMATION_EVENT = "changePresenceEvent";
 
-export interface ChangePresenceEventDto {
-	me: TYorkiePresence;
-	others: TYorkiePresence[];
+export interface ChangeUserInformationEventDto {
+	me: TYorkieUserInformation;
+	others: TYorkieUserInformation[];
 }

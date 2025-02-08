@@ -1,9 +1,9 @@
 import { App, Modal } from "obsidian";
-import { TYorkiePresence } from "../connectors/yorkiePresence";
+import { TYorkieUserInformation } from "../connectors/presence/yorkieUserInformation";
 
 export default class PeersModal extends Modal {
-	me: TYorkiePresence;
-	others: TYorkiePresence[];
+	me: TYorkieUserInformation;
+	others: TYorkieUserInformation[];
 
 	constructor(app: App) {
 		super(app);
@@ -19,13 +19,13 @@ export default class PeersModal extends Modal {
 		this.others.forEach((other) => this.createPeerEl(other, contentEl, false));
 	}
 
-	private createPeerEl(presence: TYorkiePresence, contentEl: HTMLElement, isMe: boolean) {
+	private createPeerEl(presence: TYorkieUserInformation, contentEl: HTMLElement, isMe: boolean) {
 		const userName = isMe ? presence.userName + '(me)' : presence.userName;
 		const presenceElement = contentEl.createEl("div", {text: userName});
 		presenceElement.style.color = presence.color;
 	}
 
-	setPresence(me: TYorkiePresence, others: TYorkiePresence[]) {
+	setPresence(me: TYorkieUserInformation, others: TYorkieUserInformation[]) {
 		this.me = me;
 		this.others = others;
 	}
