@@ -157,10 +157,9 @@ export default class YorkiePlugin extends Plugin {
 					const fileResult = await this.fileReader.readActivatedFile();
 					const docKey = await this.frontmatterRepository.getDocumentKey(fileResult);
 					const view = (leaf.view.editor as any).cm as EditorView;
+					await this.disconnected(peerListStatus, yorkieConnectionStatus);
 					if (docKey) {
 						await this.connect(docKey, view, peerListStatus, yorkieConnectionStatus);
-					} else {
-						await this.disconnected(peerListStatus, yorkieConnectionStatus);
 					}
 				}
 			})
