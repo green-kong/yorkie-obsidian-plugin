@@ -7,6 +7,7 @@ import { CHANGE_USER_INFORMATION_EVENT } from "../events/changePresenceEvent";
 import { TYorkiePresence } from "./presence/YorkiePresence";
 import YorkieCursor from "./presence/yorkieCursor";
 import { CHANGE_CURSOR_EVENT } from "../events/changeCursorEvent";
+import { LEAVE_PARTICIPANT_EVENT } from "../events/leaveParticipantEvent";
 
 export type TYorkieDocument = {
 	content: Text
@@ -34,6 +35,11 @@ export default class YorkieDocument {
 	private subscribeCursorChange() {
 		this.document.subscribe('others', (event) => {
 			const {clientID, presence: {userInformation: {userName, color}, cursor}} = event.value;
+			if (event.type === 'unwatched') {
+				this.events.emit(LEAVE_PARTICIPANT_EVENT, {clientID});
+				return;
+			}
+
 			if (!cursor) {
 				return;
 			}
