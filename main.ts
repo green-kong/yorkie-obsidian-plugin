@@ -29,7 +29,8 @@ import FileReader from "./utils/fileReader";
 import axios from "axios";
 import YorkieCursor from "./connectors/presence/yorkieCursor";
 import { CHANGE_CURSOR_EVENT, ChangeCursorEventDto } from "./events/changeCursorEvent";
-import { drawCursor, yCursorField, ySelectionField } from "./view/cursor/drawCursor";
+import { drawCursor, removeCursorAndSelection, yCursorField, ySelectionField } from "./view/cursor/drawCursor";
+import { LEAVE_PARTICIPANT_EVENT } from "./events/leaveParticipantEvent";
 
 
 const USER_EVENTS_LIST = ['input', 'delete', 'move', 'undo', 'redo', 'set'];
@@ -59,13 +60,8 @@ export default class YorkiePlugin extends Plugin {
 		});
 
 		const pm = new PeersModal(this.app);
-		const yorkieConnectionStatus = this.addStatusBarItem();
-		const peerListStatus = this.addStatusBarItem();
-		peerListStatus.onClickEvent(() => {
-			pm.open();
-		})
+		const {yorkieConnectionStatus, peerListStatus} = this.createPeerList(pm);
 		addCopyFunctionToDocumentKeyProperty();
-
 
 		await this.setUpSettings();
 		this.setEnvironmentVariable();
@@ -74,6 +70,64 @@ export default class YorkiePlugin extends Plugin {
 		this.addCommand(new EnterDocumentKeyCommand(this.frontmatterRepository, this.enterDocumentKeyModal, this.createOrEnterNoticeModal, this.events, this.fileReader));
 		this.addCommand(new RemoveDocumentKeyCommand(this.frontmatterRepository, this.events, this.removeNoticeModal, this.fileReader));
 
+		this.subscribeEvents(peerListStatus, yorkieConnectionStatus, pm);
+
+		/**
+		 * when opened tab is changed, judge this file is yorkie document or not
+		 */
+		this.registerEvent(
+			this.app.workspace.on('active-leaf-change', async (leaf) => {
+				if (this.leafChangeFlag) {
+					this.leafChangeFlag = false;
+					return;
+				}
+				this.leafChangeFlag = true;
+				if (leaf && leaf.view instanceof MarkdownView) {
+					const fileResult = await this.fileReader.readActivatedFile();
+					const docKey = await this.frontmatterRepository.getDocumentKey(fileResult);
+					const view = (leaf.view.editor as any).cm as EditorView;
+					await this.disconnected(peerListStatus, yorkieConnectionStatus);
+					if (docKey) {
+						await this.connect(docKey, view, peerListStatus, yorkieConnectionStatus);
+					}
+				}
+			})
+		);
+
+		this.registerEditorExtension([ySelectionField, yCursorField]);
+
+		this.registerEditorExtension(EditorView.updateListener.of((viewUpdate) => {
+			if (viewUpdate.docChanged) {
+				for (const tx of viewUpdate.transactions) {
+					if (!USER_EVENTS_LIST.map((event) => tx.isUserEvent(event)).some(Boolean)) {
+						continue;
+					}
+					if (tx.annotation(Transaction.remote)) {
+						continue;
+					}
+
+					this.yorkieConnector.updateDocument(tx);
+				}
+			}
+
+			// 커서 위치 추출 (추가된 부분)
+			if (viewUpdate.selectionSet) {
+				const {head, anchor} = viewUpdate.view.state.selection.main;
+				this.yorkieConnector.updateCursor(new YorkieCursor(head, anchor));
+			}
+		}));
+	}
+
+	private createPeerList(pm: PeersModal) {
+		const yorkieConnectionStatus = this.addStatusBarItem();
+		const peerListStatus = this.addStatusBarItem();
+		peerListStatus.onClickEvent(() => {
+			pm.open();
+		})
+		return {yorkieConnectionStatus, peerListStatus};
+	}
+
+	private subscribeEvents(peerListStatus: HTMLElement, yorkieConnectionStatus: HTMLElement, pm: PeersModal) {
 		this.events.on(CREATE_OR_ENTER_DOCUMENT_KEY_EVENT, async (dto: CreateOrEnterDocumentKeyEventDto) => {
 			const {type, documentKey, file} = dto;
 
@@ -136,58 +190,18 @@ export default class YorkiePlugin extends Plugin {
 			await this.saveSettings();
 		});
 
-
 		this.events.on(CHANGE_CURSOR_EVENT, async (dto: ChangeCursorEventDto) => {
 			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 			drawCursor(dto, activeView);
 		});
 
-
-		/**
-		 * when opened tab is changed, judge this file is yorkie document or not
-		 */
-		this.registerEvent(
-			this.app.workspace.on('active-leaf-change', async (leaf) => {
-				if (this.leafChangeFlag) {
-					this.leafChangeFlag = false;
-					return;
-				}
-				this.leafChangeFlag = true;
-				if (leaf && leaf.view instanceof MarkdownView) {
-					const fileResult = await this.fileReader.readActivatedFile();
-					const docKey = await this.frontmatterRepository.getDocumentKey(fileResult);
-					const view = (leaf.view.editor as any).cm as EditorView;
-					if (docKey) {
-						await this.connect(docKey, view, peerListStatus, yorkieConnectionStatus);
-					} else {
-						await this.disconnected(peerListStatus, yorkieConnectionStatus);
-					}
-				}
-			})
-		);
-
-		this.registerEditorExtension([ySelectionField, yCursorField]);
-
-		this.registerEditorExtension(EditorView.updateListener.of((viewUpdate) => {
-			if (viewUpdate.docChanged) {
-				for (const tx of viewUpdate.transactions) {
-					if (!USER_EVENTS_LIST.map((event) => tx.isUserEvent(event)).some(Boolean)) {
-						continue;
-					}
-					if (tx.annotation(Transaction.remote)) {
-						continue;
-					}
-
-					this.yorkieConnector.updateDocument(tx);
-				}
+		this.events.on(LEAVE_PARTICIPANT_EVENT, async ({clientID}) => {
+			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+			if (activeView) {
+				const view = (activeView.editor as any).cm as EditorView;
+				removeCursorAndSelection(clientID, view);
 			}
-
-			// 커서 위치 추출 (추가된 부분)
-			if (viewUpdate.selectionSet) {
-				const {head, anchor} = viewUpdate.view.state.selection.main;
-				this.yorkieConnector.updateCursor(new YorkieCursor(head, anchor));
-			}
-		}));
+		});
 	}
 
 	private async disconnected(peerListStatus: HTMLElement, yorkieConnectionStatus: HTMLElement) {
