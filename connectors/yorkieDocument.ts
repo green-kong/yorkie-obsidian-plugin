@@ -137,7 +137,6 @@ export default class YorkieDocument {
 			changes,
 			annotations: [Transaction.remote.of(true)],
 		});
-		this.syncText();
 	}
 
 	update(transaction: Transaction) {
