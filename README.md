@@ -1,7 +1,5 @@
 # 🐶 Yorkie Synkie: Real-Time Collaboration for Obsidian
 
-Yorkie Synkie Banner
-
 ## 🌟 Unleash the Power of Collaborative Note-Taking!
 
 Yorkie Synkie brings the magic of real-time collaboration to your Obsidian vault. Powered by the robust Yorkie document store, this lightweight plugin transforms your solo note-taking experience into a vibrant, collaborative adventure!
@@ -42,11 +40,7 @@ Yorkie is an open-source document store for building collaborative applications.
 
 ## 🙋 Support & Feedback
 
-Encountered an issue or have a suggestion? We'd love to hear from you! Please open an issue on our [GitHub repository](https://github.com/your-username/yorkie-synkie).
-
-## 📜 License
-
-Yorkie Synkie is released under the [MIT License](LICENSE).
+Encountered an issue or have a suggestion? We'd love to hear from you! Please open an issue on our [GitHub repository](https://github.com/green-kong/yorkie-obsidian-plugin).
 
 ---
 
