@@ -59,6 +59,7 @@ export default class YorkieConnector {
 		await this.client?.attach(document.document, {
 			initialPresence: {userInformation, cursor: null}
 		});
+		document.init(clientId);
 		document.setupInitialData();
 		this.document = document;
 	}

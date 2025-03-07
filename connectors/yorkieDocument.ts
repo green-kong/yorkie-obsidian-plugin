@@ -22,14 +22,14 @@ export default class YorkieDocument {
 		this.document = new yorkie.Document<TYorkieDocument, TYorkiePresence>(documentKey);
 		this.view = view;
 		this.events = events;
-		this.init(clientId);
 	}
 
-	private init(clientId: string | undefined) {
+	public init(clientId: string | undefined) {
 		this.subscribeSnapshot();
 		this.subscribeRemoteChange();
 		this.subscribePeerListChange(clientId);
 		this.subscribeCursorChange();
+		this.syncText();
 	}
 
 	private subscribeCursorChange() {
