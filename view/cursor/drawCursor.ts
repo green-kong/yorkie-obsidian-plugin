@@ -80,3 +80,18 @@ export const drawCursor = (dto: ChangeCursorEventDto, activeView: MarkdownView |
 		]
 	});
 };
+
+export const removeCursorAndSelection = (clientID: string, view: EditorView) => {
+	view.dispatch({
+		effects: [
+			updateYCursor.of({
+				clientID,
+				decoration: Decoration.none
+			}),
+			updateYSelection.of({
+				clientID,
+				decoration: Decoration.none
+			})
+		]
+	});
+};
