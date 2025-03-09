@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "obsidian-yorkie-plugin",
+	"name": "Yorkie Synkie",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"minAppVersion": "1.0.0",
+	"description": "Yorkie Synkie is a lightweight and simple real-time collaboration plugin. It enables seamless concurrent editing using Yorkie, an open-source document store for building collaborative applications. Yorkie provides automatic conflict resolution, making this plugin efficient and user-friendly for collaborative note-taking and document editing.",
+	"author": "dev-kong",
+	"authorUrl": "http://github.com/green-kong",
 	"isDesktopOnly": false
 }
