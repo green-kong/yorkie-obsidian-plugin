@@ -55,6 +55,7 @@ export default class YorkieDocument {
 	}
 
 	private subscribePeerListChange(clientId: string | undefined) {
+		console.log('test')
 		this.document.subscribe('presence', (event) => {
 			const peers = this.document.getPresences()
 				.map(presence => ({
