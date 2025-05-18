@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import yorkie, { Client } from 'yorkie-js-sdk'
+import yorkie, { Client } from '@yorkie-js/sdk'
 import { Notice } from "obsidian";
 import { EditorView } from "@codemirror/view";
 import YorkieDocument from "./yorkieDocument";
@@ -41,7 +41,8 @@ export default class YorkieConnector {
 
 	private async connectClient() {
 		const yorkieAPIKey = process.env.YORKIE_API_KEY;
-		this.client = new yorkie.Client('https://api.yorkie.dev', {
+		this.client = new yorkie.Client({
+			rpcAddr: 'https://api.yorkie.dev',
 			apiKey: yorkieAPIKey,
 		});
 		await this.client.activate();

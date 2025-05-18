@@ -1,5 +1,5 @@
 import { TYorkieUserInformation } from "./yorkieUserInformation";
-import { TextPosStructRange } from "yorkie-js-sdk";
+import { TextPosStructRange } from "@yorkie-js/sdk";
 
 export type TYorkiePresence = {
 	userInformation: TYorkieUserInformation;

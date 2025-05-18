@@ -1,4 +1,4 @@
-import yorkie, { ActorID, ConnectionChangedEvent, Document, EditOpInfo, OperationInfo, Text } from 'yorkie-js-sdk'
+import yorkie, { ActorID, ConnectionChangedEvent, Document, EditOpInfo, OperationInfo, Text } from '@yorkie-js/sdk'
 import { Transaction, TransactionSpec } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { TYorkieUserInformation } from "./presence/yorkieUserInformation";
@@ -108,6 +108,7 @@ export default class YorkieDocument {
 
 	private syncText() {
 		const text = this.document.getRoot().content;
+		if (!text) return;
 		const transactionSpec: TransactionSpec = {
 			changes: {from: 0, to: this.view.state.doc.length, insert: text.toString()},
 			annotations: [Transaction.remote.of(true)],
