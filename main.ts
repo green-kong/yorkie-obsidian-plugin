@@ -97,9 +97,24 @@ export default class YorkiePlugin extends Plugin {
 		this.registerEditorExtension([ySelectionField, yCursorField]);
 
 		this.registerEditorExtension(EditorView.updateListener.of((viewUpdate) => {
+
 			if (viewUpdate.docChanged) {
 				for (const tx of viewUpdate.transactions) {
 					if (!USER_EVENTS_LIST.map((event) => tx.isUserEvent(event)).some(Boolean)) {
+						tx.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+							const insertedText = inserted.sliceString(0);
+							if (insertedText.startsWith('![[') && insertedText.endsWith(']]')) {
+								this.yorkieConnector.updateDocument(tx);
+								// TODO: Replace content of insert to S3 path
+								viewUpdate.view.dispatch({
+									changes: {from: fromB, to: toB, insert: "test"},
+									annotations: [
+										Transaction.userEvent.of('input.insert'), // Yorkie 이벤트 트리거
+										Transaction.remote.of(false) // 원격 변경 아님 표시
+									]
+								});
+							}
+						});
 						continue;
 					}
 					if (tx.annotation(Transaction.remote)) {
@@ -110,7 +125,6 @@ export default class YorkiePlugin extends Plugin {
 				}
 			}
 
-			// 커서 위치 추출 (추가된 부분)
 			if (viewUpdate.selectionSet) {
 				const {head, anchor} = viewUpdate.view.state.selection.main;
 				this.yorkieConnector.updateCursor(new YorkieCursor(head, anchor));

@@ -141,14 +141,19 @@ export default class YorkieDocument {
 	}
 
 	update(transaction: Transaction) {
-		let adj = 0;
-		transaction.changes.iterChanges((fromA, toA, _, __, inserted) => {
-			const insertText = inserted.toJSON().join('\n');
-			this.document.update((root) => {
-				root.content.edit(fromA + adj, toA + adj, insertText);
+		try {
+			console.log("from document", transaction);
+			let adj = 0;
+			transaction.changes.iterChanges((fromA, toA, _, __, inserted) => {
+				const insertText = inserted.toJSON().join('\n');
+				this.document.update((root) => {
+					root.content.edit(fromA + adj, toA + adj, insertText);
+				});
+				adj += insertText.length - (toA - fromA);
 			});
-			adj += insertText.length - (toA - fromA);
-		});
+		} catch (e) {
+			console.error("yorkie document update error",e);
+		}
 	}
 
 	updateUserInformation(userInformation: TYorkieUserInformation) {
