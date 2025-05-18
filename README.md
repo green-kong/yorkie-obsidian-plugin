@@ -19,7 +19,7 @@ Yorkie Synkie brings the magic of real-time collaboration to your Obsidian vault
 4. Install the plugin and enable it
 	<img width="1099" alt="image" src="https://github.com/user-attachments/assets/016412f2-9c2d-4349-9101-f8475d072169" />
 
-
+test
 ## 🚀 Quick Start
 
 ### Starting Collaborative Editing
